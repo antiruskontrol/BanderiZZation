@@ -1,19 +1,23 @@
 /*
 ===================================================================
-Версія:       1.0.1 (BanderiZZation! Logic Engine)
-Дата, час:    2026-10-11 12:59
+Версія:       1.0.8 (BanderiZZation! Logic Engine)
+Дата, час:    2026-10-11 14:38
 Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
 -------------------------------------------------------------------
-Зміни 1.0.1 відносно 1.0.0:
- 1. Годинник: оптимізовано формат оновлення точного часу для верхнього інфо-бару.
- 2. Ігровий цикл: інтегровано рушій змагання з таймером на 30 секунд.
- 3. База рекордів: додано збереження особистих досягнень гравця через LocalStorage 
-    із патріотичним фінальним екраном.
+Еволюція змін:
+ Зміни 1.0.1 - 1.0.6:
+  [Архів оновлень годинника та інтеграції ігрового рушія]
+ Зміни 1.0.7 відносно 1.0.6:
+  1. Модальні вікна: додано керування кліками для вікна версії.
+ Зміни 1.0.8 відносно 1.0.7 (Поточна версія):
+  1. Керування інтерфейсом: видалено функції відкриття модального вікна 
+     по кліку. Логіка переведена на CSS-події наведення (hover).
 ===================================================================
 */
 
-let gameTimer = null;
+let gameTimer = null; // Потік ігрового таймера
 
+// --- 1. ОНОВЛЕННЯ ГОДИННИКА В РЕАЛЬНОМУ ЧАСІ ---
 function updateClock() {
     const clockElement = document.getElementById('current-datetime');
     if (clockElement) {
@@ -29,6 +33,7 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
+// --- 2. РУШІЙ ГРИ: ЗБИРАЙ ВРОЖАЙ ---
 function startGame(gameType) {
     const modal = document.getElementById('game-modal');
     const container = document.getElementById('game-container');
@@ -119,6 +124,6 @@ function closeGame() {
 }
 
 window.onclick = function (event) {
-    const modal = document.getElementById('game-modal');
-    if (event.target == modal) { closeGame(); }
+    const gameModal = document.getElementById('game-modal');
+    if (event.target == gameModal) { closeGame(); }
 }

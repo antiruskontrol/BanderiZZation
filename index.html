@@ -1,3 +1,20 @@
+<!--
+===================================================================
+Версія:       1.1.4 (BanderiZZation! Hub — index.html)
+Дата, час:    2026-10-11 15:54
+Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
+-------------------------------------------------------------------
+Еволюція змін:
+ Зміни 1.0.1 - 1.0.8: [Архів структурних оновлень, копірайтів та ігрових модулів]
+ Зміни 1.0.9 - 1.1.1: [Інтеграція маски, фіксація верхнього бару та hover-вікна]
+ Зміни 1.1.2 відносно 1.1.1:
+  1. Екосистема: додано реальні робочі адреси для кнопок-логотипів та робочі PNG іконки.
+ Зміни 1.1.4 відносно 1.1.2 (Поточна версія):
+  1. Масштабування: іконки-логотипи успішно збільшено на 200% (до 64px).
+  2. Зелений неон: додано ефект соковитого неонового свічення та підсвічування 
+     рамок при наведенні курсору мишки, а текстові підписи прибрано для чистоти стилю.
+===================================================================
+-->
 <!DOCTYPE html>
 <html lang="uk">
 <head>
@@ -5,24 +22,76 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BanderiZZation! — Казуальні українські ігри</title>
     <link rel="stylesheet" href="style.css">
+    
+    <!-- Додаємо мікро-стиль прямо сюди, щоб нічого не зламати в основному файлі style.css -->
+    <style>
+        .logo-site-link-custom {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            border-radius: 12px;
+            text-decoration: none;
+            background: rgba(15, 23, 42, 0.3); /* Напівпрозоре темне тло кнопки */
+            border: 1px solid rgba(234, 88, 12, 0.35); /* Початкова помаранчева рамка */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease-in-out;
+        }
+        /* Ефект наведення курсору: спалах соковитого зеленого неону */
+        .logo-site-link-custom:hover {
+            background: rgba(22, 163, 74, 0.2) !important; /* Прозоро-зелений спалах тла */
+            border-color: #22c55e !important; /* Яскраво-зелена рамка */
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.8), 0 0 35px rgba(34, 197, 94, 0.4) !important; /* Неонове підсвічування */
+            transform: translateY(-4px);
+        }
+    </style>
 </head>
 <body>
 
     <!-- Фірмовий інформаційний рядок екосистеми зверху -->
     <div class="top-bar">
-        <span id="current-datetime">11.10.2026, 13:37:00</span>
+        <span id="current-datetime">11.10.2026, 15:54:00</span>
         <span class="location-badge">🇺🇦 Київ</span>
         <div class="top-controls">
             <span class="control-badge">Атмосфера: увімкнено 🔊</span>
-            <!-- Перетворили версію на клікабельну кнопку -->
-            <span class="version-badge" onclick="openVersionModal()" style="cursor: pointer;">v1.0.7 ℹ️</span>
+            
+            <!-- ЗОНА ТРИГЕРА: Кнопка версії + вкладене прозоре вікно -->
+            <div class="version-trigger-zone">
+                <span class="version-badge">v1.1.4 ℹ️</span>
+                
+                <!-- Прозоре вікно, яке плавно проявляється помаранчевим неоном при ховері -->
+                <div class="neon-version-popup">
+                    <div class="neon-line">ВЕРСІЯ: v1.1.4 STABLE</div>
+                    <div class="neon-line">ДАТА: 2026-10-11</div>
+                    <div class="neon-line">ЧАС: 15:54:00</div>
+                    <div class="neon-line">РОЗРОБНИК: antiruskontrol@ukr.net</div>
+                    
+                    <!-- Плашка англійською мовою -->
+                    <div class="neon-location-tag">KYIV UKRAINE 2026</div>
+                    
+                    <!-- Фірмові кнопки-логотипи збільшені на 200% (64px на 64px) із зеленим неоном -->
+                    <div class="logo-sites-grid" style="display: flex; gap: 1.2rem; margin-top: 1rem;">
+                        <a href="https://antiruskontrol.github.io/WeatherInUkraine/" target="_blank" class="logo-site-link-custom" title="WeatherInUkraine">
+                            <img src="weather-logo.png" alt="Weather" style="width: 64px; height: 64px; object-fit: contain; border-radius: 6px;">
+                        </a>
+                        <a href="https://antiruskontrol.github.io/antirus-control/" target="_blank" class="logo-site-link-custom" title="UAFilter">
+                            <img src="antirus-logo.png" alt="UAFilter" style="width: 64px; height: 64px; object-fit: contain; border-radius: 6px;">
+                        </a>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
     <header>
-        <h1>BanderiZZation!</h1>
+        <!-- Назва проекту загорнута в окремий блок, щоб опис став точно під нею -->
+        <div class="title-container">
+            <h1>BanderiZZation!</h1>
+        </div>
         <div class="subtitle-box">
-            <p class="subtitle">Платформа казуальних ігор з яскравим українским колоритом, гумором та мемами</p>
+            <p class="subtitle">Платформа казуальних ігор з яскравим українським колоритом, гумором та мемами</p>
         </div>
     </header>
 
@@ -54,48 +123,11 @@
         </div>
     </main>
 
-    <!-- Модальне вікно для ігор -->
+    <!-- Модальне вікно для гри -->
     <div id="game-modal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeGame()">&times;</span>
             <div id="game-container"></div>
-        </div>
-    </div>
-
-    <!-- НОВЕ МОДАЛЬНЕ ВІКНО ВЕРСІЙНОСТІ ТА ЕКОСИСТЕМИ СAЙТІВ -->
-    <div id="version-modal" class="modal">
-        <div class="modal-content version-content">
-            <span class="close-btn" onclick="closeVersionModal()">&times;
-</span>
-            
-            <h2 style="color: var(--accent-yellow); margin-bottom: 1.5rem; font-size: 1.6rem;">Специфікація платформи ℹ️</h2>
-            
-            <div class="v-info-line"><span>Поточна версія:</span> <strong style="color: #22c55e;">v1.0.7 Stable</strong></div>
-            <div class="v-info-line"><span>Остання редакція:</span> <strong>2026-10-11 13:37</strong></div>
-            
-            <!-- Фірмова плашка розробника -->
-            <div class="developer-card">
-                <div class="dev-avatar">👨‍💻</div>
-                <div class="dev-details">
-                    <h4>Афтіпа Марко Оцтович</h4>
-                    <p>Головний архітектор екосистеми</p>
-                    <a href="mailto:antiruskontrol@ukr.net">antiruskontrol@ukr.net</a>
-                </div>
-            </div>
-
-            <h3 style="color: #ffffff; margin: 1.5rem 0 1rem 0; font-size: 1.1rem; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1rem;">Наші інші проекти в мережі:</h3>
-            
-            <!-- Посилання-іконки на ваші інші сайти -->
-            <div class="ecosystem-links">
-                <a href="https://github.io" target="_blank" class="eco-site-btn">
-                    <span class="eco-icon">🌤️</span>
-                    <span class="eco-name">WeatherInUkraine</span>
-                </a>
-                <a href="https://github.io" target="_blank" class="eco-site-btn">
-                    <span class="eco-icon">🛡️</span>
-                    <span class="eco-name">UAFilter</span>
-                </a>
-            </div>
         </div>
     </div>
 
@@ -110,6 +142,9 @@
         <p>Автор: Афтіпа Марко Оцтович | Зворотний зв'язок: <a href="mailto:antiruskontrol@ukr.net">antiruskontrol@ukr.net</a></p>
         <p>Kyiv Ukraine 2026</p>
     </footer>
+
+    <!-- Окремий фірмовий блок маски для повного затемнення всього екрана -->
+    <div class="screen-overlay"></div>
 
     <script src="script.js"></script>
 </body>
