@@ -39,5 +39,6 @@ BanderiZZation! — це відкрита (open-source) ігрова платф�
 3. Зробіть **Commit** ваших змін (`git commit -m 'Add some AmazingGame'`).
 4. Надішліть **Pull Request**.
 
+📧 **Зворотний зв'язок / Контакти:** [напишіть мені листа](mailto:antiruskontrol@ukr.net)
 ---
 *Розроблено з коханням в Україні та для України. Разом до перемоги!* 🇺🇦
