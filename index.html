@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BanderiZZation! — Казуальні українські ігри</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <header>
+        <h1>BanderiZZation! 🇺🇦</h1>
+        <p>Твій хаб казуальних та драйвових україноцентричних ігор</p>
+    </header>
+
+    <main class="games-grid">
+        <!-- Картка першої гри -->
+        <div class="game-card">
+            <div class="game-icon">🌾</div>
+            <h3>Збирай Врожай</h3>
+            <p>Швидка казуальна гра: встигни зібрати якомога більше пшениці за 30 секунд!</p>
+            <button class="play-btn" onclick="startGame('harvest')">Грати</button>
+        </div>
+
+        <!-- Заглушка для наступної гри -->
+        <div class="game-card locked">
+            <div class="game-icon">🦊</div>
+            <h3>Скоро у грі...</h3>
+            <p>Нова мемна гра вже в розробці. Слідкуйте за оновленнями репозиторію!</p>
+            <button class="play-btn" disabled>Закрито</button>
+        </div>
+    </main>
+
+    <!-- Модальне вікно для гри -->
+    <div id="game-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeGame()">&times;</span>
+            <div id="game-container">
+                <!-- Сюди буде завантажуватися гра -->
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 BanderiZZation! Розроблено з коханням до України. Open Source проект.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
