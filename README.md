@@ -4,16 +4,16 @@ Open-source платформа ігор з яскравим українськи
 **Ще наші проекти
 
 <img width="1024" height="1024" alt="banderizzation" src="https://github.com/user-attachments/assets/23b878e3-2522-46c2-bb78-2d817bc1e306" />
-# 🌾 BanderiZZation! — Платформа казуальних українських ігор
+# BanderiZZation! — Платформа казуальних українських ігор
 
 **BanderiZZation!** — це відкрита (open-source) ігрова платформа, створена для популяризації безкоштовних браузерних ігор з яскравим українським колоритом, автентичним гумором та популярними мемами. Грай прямо в браузері без реєстрації та завантажень!
 
-🚀 **Офіційний сайт:** [antiruskontrol.github.io/BanderiZZation](https://github.io)
+🚀 **Офіційний сайт:** [antiruskontrol.github.io/BanderiZZation]([https://github.io](https://antiruskontrol.github.io/BanderiZZation/))
 
 ---
 
 ## 🎮 Наші ігри
-* **Збирай Врожай 🌾** — захоплива казуальна міні-гра, де кожен колосок має значення.
+
 * *Нові ігри вже в розробці...* 🦊 ☁️
 
 ---
