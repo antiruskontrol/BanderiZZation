@@ -1,0 +1,126 @@
+:root {
+    --main-bg: #0b0f19;
+    --panel-bg: rgba(30, 36, 50, 0.65);
+    --panel-border: rgba(255, 255, 255, 0.08);
+    --accent-yellow: #facc15;
+    --text-white: #e2e8f0;
+    --text-muted: #94a3b8;
+}
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: radial-gradient(circle at 80% 20%, rgba(185, 28, 28, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 20% 80%, rgba(29, 78, 216, 0.15) 0%, transparent 50%),
+                var(--main-bg);
+    background-attachment: fixed;
+    color: var(--text-white);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Верхній інфо-рядок */
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 2rem;
+    background: rgba(15, 23, 42, 0.8);
+    border-bottom: 1px solid var(--panel-border);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+.location-badge { color: var(--accent-yellow); }
+.top-controls { display: flex; gap: 1rem; }
+.control-badge {
+    background: rgba(59, 130, 246, 0.2);
+    border: 1px solid #3b82f6;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    color: #93c5fd;
+}
+.version-badge {
+    background: rgba(245, 158, 11, 0.2);
+    border: 1px solid var(--accent-yellow);
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    color: var(--accent-yellow);
+}
+
+header { text-align: center; padding: 3rem 1rem 1rem 1rem; }
+header h1 { font-size: 3rem; margin: 0; color: #ffffff; letter-spacing: 0.5px; }
+.subtitle { font-size: 1.1rem; color: var(--text-muted); margin-top: 0.5rem; }
+
+/* Ігрова сітка */
+.games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2.5rem;
+    padding: 2rem;
+    max-width: 1000px;
+    margin: 0 auto;
+    flex: 1;
+}
+
+/* Картки ігор */
+.game-card {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    backdrop-filter: blur(12px);
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
+.game-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(59, 130, 246, 0.4);
+}
+
+.status-badge {
+    position: absolute; top: 0.75rem; left: 0.75rem; z-index: 5;
+    padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: bold;
+}
+.badge-active { background: #16a34a; color: white; }
+.badge-dev { background: #2563eb; color: white; }
+
+.game-poster-wrap { width: 100%; padding-top: 50%; position: relative; background: #131926; }
+.game-poster { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; }
+.harvest-bg { background: linear-gradient(135deg, #d97706 0%, #78350f 100%); }
+.dev-bg { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); opacity: 0.5; }
+
+.game-info { padding: 1.5rem; display: flex; flex-direction: column; flex: 1; }
+.game-info h3 { margin: 0 0 0.5rem 0; font-size: 1.35rem; color: var(--accent-yellow); }
+.game-info p { margin: 0 0 1.5rem 0; font-size: 0.95rem; color: #cbd5e1; line-height: 1.5; flex: 1; }
+
+/* Фірмові кнопки */
+.play-btn {
+    background: rgba(30, 41, 59, 0.8); color: white; border: 1px solid #16a34a;
+    padding: 0.75rem; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;
+}
+.game-card:not(.locked):hover .play-btn {
+    background: #16a34a; box-shadow: 0 0 15px rgba(22, 163, 74, 0.4);
+}
+.game-card.locked { opacity: 0.6; }
+.game-card.locked .play-btn { border-color: #475569; color: var(--text-muted); cursor: not-allowed; }
+
+/* Нижня патріотична панель */
+.patriotic-bar { display: flex; justify-content: center; gap: 1rem; padding: 1.5rem; }
+.pat-btn { border: none; padding: 0.5rem 1.2rem; border-radius: 6px; font-weight: bold; color: white; cursor: pointer; font-size: 0.9rem; }
+.shana { background: #b91c1c; }
+.slava { background: #2563eb; border: 1px solid #60a5fa; }
+.trivoga { background: #ea580c; }
+
+/* Футер */
+footer { text-align: center; padding: 1.5rem 1rem; background: rgba(10, 14, 23, 0.9); border-top: 1px solid var(--panel-border); font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; }
+footer a { color: var(--accent-yellow); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+
+/* Ігрове модальне вікно */
+.modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); }
+.modal-content { background-color: #151b2c; border: 1px solid var(--panel-border); margin: 10% auto; padding: 2rem; border-radius: 12px; width: 80%; max-width: 500px; position: relative; text-align: center; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
+.close-btn { position: absolute; right: 1.5rem; top: 1rem; font-size: 2rem; cursor: pointer; color: var(--text-muted); }
+.close-btn:hover { color: white; }

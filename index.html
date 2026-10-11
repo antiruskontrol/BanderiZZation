@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BanderiZZation! — Казуальні українські ігри</title>
+    <!-- Підключаємо style.css точно так, як названо файл у провіднику -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Фірмовий інфо-рядок вашої мережі сайтів -->
+    <div class="top-bar">
+        <span id="current-datetime">11.10.2026, 12:15:00</span>
+        <span class="location-badge">🇺🇦 Київ</span>
+        <div class="top-controls">
+            <span class="control-badge">Атмосфера: увімкнено 🔊</span>
+            <span class="version-badge">v1.0.0</span>
+        </div>
+    </div>
+
+    <header>
+        <h1>BanderiZZation!</h1>
+        <p class="subtitle">Платформа казуальних ігор з яскравим українським колоритом, гумором та мемами</p>
+    </header>
+
+    <main class="games-grid">
+        <!-- Картка першої гри -->
+        <div class="game-card">
+            <span class="status-badge badge-active">Доступно</span>
+            <div class="game-poster-wrap">
+                <div class="game-poster harvest-bg">🌾</div>
+            </div>
+            <div class="game-info">
+                <h3>Збирай Врожай</h3>
+                <p>Швидка казуальна гра: встигни наклікати якомога більше стиглої пшениці, поки тикає таймер!</p>
+                <button class="play-btn" onclick="startGame('harvest')">Грати зараз</button>
+            </div>
+        </div>
+
+        <!-- Картка другої гри -->
+        <div class="game-card locked">
+            <span class="status-badge badge-dev">У розробці</span>
+            <div class="game-poster-wrap">
+                <div class="game-poster dev-bg">🦊</div>
+            </div>
+            <div class="game-info">
+                <h3>Козацький Драйв</h3>
+                <p>Епічний казуальний раннер. Збирайте кавуни, оминайте перешкоди та ставте рекорди!</p>
+                <button class="play-btn" disabled>Незабаром</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Модальне вікно для гри -->
+    <div id="game-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeGame()">&times;</span>
+            <div id="game-container"></div>
+        </div>
+    </div>
+
+    <!-- Фірмові патріотичні кнопки -->
+    <div class="patriotic-bar">
+        <button class="pat-btn shana">Шана Героям</button>
+        <button class="pat-btn slava">Слава Героям</button>
+        <button class="pat-btn trivoga">Тривога в Україні</button>
+    </div>
+
+    <footer>
+        <p>Автор: Антірус-Контроль | Зворотний зв'язок: <a href="mailto:antiruskontrol@ukr.net">antiruskontrol@ukr.net</a></p>
+        <p>Kyiv Ukraine 2026</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
