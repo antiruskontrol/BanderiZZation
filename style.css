@@ -1,58 +1,119 @@
+/*
+===================================================================
+Версія:       1.0.7 (BanderiZZation! Hub — style.css Частина 1)
+Дата, час:    2026-10-11 13:38
+Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
+-------------------------------------------------------------------
+Еволюція змін:
+ Зміни 1.0.1 - 1.0.4:
+  [Архів оновлень тла, яскравості 150%, уніфікації карток на 25% прозорості]
+ Зміни 1.0.5 відносно 1.0.4:
+  1. Головний заголовок: додано ефект розмиття фону та постійний неон.
+  2. Анімація пульсації: створено безкінечний цикл серцебиття.
+ Зміни 1.0.6 відносно 1.0.5:
+  1. Пульсація заголовка: зменшено інтенсивність розширення (scale) до 0.5%.
+  2. Опис платформи: створено клас `.subtitle-box` зі скляним тлом 20%.
+ Зміни 1.0.7 відносно 1.0.6 (Поточна версія):
+  1. Модальне вікно версії: додано класи `.v-info-line`, `.developer-card` 
+     та `.ecosystem-links` для відображення специфікації та інших сайтів.
+  2. Кольори: всі нові колірні стилі плашок детально промарковано коментарями.
+===================================================================
+*/
+
 :root {
-    --main-bg: #0b0f19;
-    --panel-bg: rgba(30, 36, 50, 0.65);
-    --panel-border: rgba(255, 255, 255, 0.08);
-    --accent-yellow: #facc15;
-    --text-white: #e2e8f0;
-    --text-muted: #94a3b8;
+    --main-bg: #0b0f19; /* Глибокий темно-синій колір загального тла */
+    --panel-bg: rgba(10, 15, 30, 0.25); /* Напівпрозоре чорнильне тло панелей (25%) */
+    --panel-border: rgba(255, 255, 255, 0.08); /* Тонка світла межа для ефекту скла */
+    --accent-yellow: #facc15; /* Яскраво-жовтий фірмовий колір акцентів */
+    --text-white: #ffffff; /* Сніжно-білий колір головних текстів */
+    --text-muted: #cbd5e1; /* Приглушений сірий колір другорядних написів */
+    --blur-effect: blur(24px); /* Радіус розмиття матового скла для карток */
+    --neon-glow-color: rgba(59, 130, 246, 0.85); /* Яскраво-синій неоновий колір заголовка */
 }
 
 body {
     margin: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: radial-gradient(circle at 80% 20%, rgba(185, 28, 28, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 20% 80%, rgba(29, 78, 216, 0.15) 0%, transparent 50%),
-                var(--main-bg);
-    background-attachment: fixed;
-    color: var(--text-white);
+    color: var(--text-white); /* Використання білого кольору для всього тіла */
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    position: relative;
 }
 
-/* Верхній інфо-рядок */
-.top-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem 2rem;
-    background: rgba(15, 23, 42, 0.8);
-    border-bottom: 1px solid var(--panel-border);
-    font-size: 0.85rem;
-    color: var(--text-muted);
+body::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+    background: linear-gradient(180deg, rgba(11, 15, 25, 0.15) 0%, rgba(11, 15, 25, 0.35) 100%), 
+                url('poster1.jfif') no-repeat center top;
+    background-size: cover;
+    filter: brightness(150%) contrast(135%) saturate(140%);
 }
-.location-badge { color: var(--accent-yellow); }
+
+.top-bar {
+    display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 2rem;
+    background: rgba(15, 23, 42, 0.6); /* Напівпрозоре темно-сіре тло бару */
+    backdrop-filter: var(--blur-effect); -webkit-backdrop-filter: var(--blur-effect);
+    border-bottom: 1px solid var(--panel-border); font-size: 0.85rem;
+    color: #94a3b8; /* Сталевий колір тексту годинника */
+}
+.location-badge { color: var(--accent-yellow); /* Жовтий колір для локації */ }
 .top-controls { display: flex; gap: 1rem; }
 .control-badge {
-    background: rgba(59, 130, 246, 0.2);
-    border: 1px solid #3b82f6;
-    padding: 0.2rem 0.6rem;
-    border-radius: 20px;
-    color: #93c5fd;
+    background: rgba(59, 130, 246, 0.2); /* Напівпрозоре синє тло атмосфери */
+    border: 1px solid #3b82f6; /* Яскраво-синя межа атмосфери */
+    padding: 0.2rem 0.6rem; border-radius: 20px;
+    color: #93c5fd; /* Ніжно-блакитний колір тексту атмосфери */
 }
 .version-badge {
-    background: rgba(245, 158, 11, 0.2);
-    border: 1px solid var(--accent-yellow);
-    padding: 0.2rem 0.6rem;
-    border-radius: 6px;
-    color: var(--accent-yellow);
+    background: rgba(245, 158, 11, 0.2); /* Напівпрозоре помаранчеве тло версії */
+    border: 1px solid var(--accent-yellow); /* Жовта межа версії */
+    padding: 0.2rem 0.6rem; border-radius: 6px;
+    color: var(--accent-yellow); /* Жовтий колір цифр версії */
+    transition: background 0.2s;
+}
+.version-badge:hover {
+    background: rgba(245, 158, 11, 0.4); /* Більш яскраве помаранчеве тло при наведенні */
 }
 
-header { text-align: center; padding: 3rem 1rem 1rem 1rem; }
-header h1 { font-size: 3rem; margin: 0; color: #ffffff; letter-spacing: 0.5px; }
-.subtitle { font-size: 1.1rem; color: var(--text-muted); margin-top: 0.5rem; }
+header { 
+    text-align: center; 
+    padding: 4rem 1rem 2rem 1rem; 
+}
 
-/* Ігрова сітка */
+header h1 { 
+    font-size: 3.5rem; margin: 0; display: inline-block; padding: 0.2rem 1.5rem; border-radius: 12px;
+    color: #ffffff; /* Основний колір тексту заголовка — білий */
+    letter-spacing: 0.5px;
+    background: rgba(15, 23, 42, 0.2); /* Екстра-прозоре темне тло підкладки заголовка */
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.03); /* Майже помітна біла рамка заголовка */
+    animation: heartbeat 1.4s infinite ease-in-out;
+}
+
+.subtitle-box {
+    display: inline-block; margin-top: 1.5rem; padding: 0.6rem 2rem; border-radius: 12px;
+    background: rgba(10, 15, 30, 0.2); /* Тло підкладки тексту прозорістю 20% */
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05); /* Тонка світла границя скла опису */
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); /* Темна тінь підкладки */
+}
+
+.subtitle { 
+    font-size: 1.35rem; color: #f1f5f9; /* Світло-сірий колір літер опису проекту */
+    margin: 0; font-weight: 500; letter-spacing: 0.2px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6); /* Захисна тінь для букв */
+}
+
+@keyframes heartbeat {
+    0% { transform: scale(1); text-shadow: 0 0 10px var(--neon-glow-color), 0 0 20px var(--neon-glow-color), 0 4px 12px rgba(0, 0, 0, 0.7); }
+    14% { transform: scale(1.003); text-shadow: 0 0 16px var(--neon-glow-color), 0 0 28px var(--neon-glow-color), 0 4px 15px rgba(0, 0, 0, 0.8); }
+    28% { transform: scale(1); text-shadow: 0 0 10px var(--neon-glow-color), 0 0 20px var(--neon-glow-color), 0 4px 12px rgba(0, 0, 0, 0.7); }
+    42% { transform: scale(1.005); text-shadow: 0 0 22px var(--neon-glow-color), 0 0 38px var(--neon-glow-color), 0 0 50px var(--neon-glow-color), 0 4px 18px rgba(0, 0, 0, 0.9); }
+    70% { transform: scale(1); text-shadow: 0 0 10px var(--neon-glow-color), 0 0 20px var(--neon-glow-color), 0 4px 12px rgba(0, 0, 0, 0.7); }
+}
+/* Ігрова сітка карток */
 .games-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -63,64 +124,168 @@ header h1 { font-size: 3rem; margin: 0; color: #ffffff; letter-spacing: 0.5px; }
     flex: 1;
 }
 
-/* Картки ігор */
+/* Екстра-скляні картки ігор */
 .game-card {
-    background: var(--panel-bg);
-    border: 1px solid var(--panel-border);
-    border-radius: 12px;
+    background: var(--panel-bg); /* Тло картки з перемінної root */
+    border: 1px solid var(--panel-border); /* Колір межі з перемінної root */
+    border-radius: 16px;
     overflow: hidden;
     position: relative;
     display: flex;
     flex-direction: column;
-    backdrop-filter: blur(12px);
-    transition: transform 0.3s ease, border-color 0.3s ease;
+    
+    backdrop-filter: var(--blur-effect);
+    -webkit-backdrop-filter: var(--blur-effect);
+    
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6); /* Чорна тінь для об'єму картки */
+    transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.3s ease, box-shadow 0.3s ease;
 }
 .game-card:hover {
-    transform: translateY(-4px);
-    border-color: rgba(59, 130, 246, 0.4);
+    transform: translateY(-6px);
+    border-color: rgba(59, 130, 246, 0.5); /* Синє неонове підсвічування рамок при наведенні */
+    box-shadow: 0 20px 45px rgba(59, 130, 246, 0.25); /* Тінь з синім відтінком при наведенні */
 }
 
 .status-badge {
     position: absolute; top: 0.75rem; left: 0.75rem; z-index: 5;
     padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: bold;
 }
-.badge-active { background: #16a34a; color: white; }
-.badge-dev { background: #2563eb; color: white; }
+.badge-active { background: #16a34a; /* Насичений зелений колір плашки "Доступно" */ color: #ffffff; /* Білий текст плашки */ }
+.badge-dev { background: #2563eb; /* Глибокий синій колір плашки "У розробці" */ color: #ffffff; /* Білий текст плашки */ }
 
-.game-poster-wrap { width: 100%; padding-top: 50%; position: relative; background: #131926; }
-.game-poster { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; }
-.harvest-bg { background: linear-gradient(135deg, #d97706 0%, #78350f 100%); }
-.dev-bg { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); opacity: 0.5; }
-
-.game-info { padding: 1.5rem; display: flex; flex-direction: column; flex: 1; }
-.game-info h3 { margin: 0 0 0.5rem 0; font-size: 1.35rem; color: var(--accent-yellow); }
-.game-info p { margin: 0 0 1.5rem 0; font-size: 0.95rem; color: #cbd5e1; line-height: 1.5; flex: 1; }
-
-/* Фірмові кнопки */
-.play-btn {
-    background: rgba(30, 41, 59, 0.8); color: white; border: 1px solid #16a34a;
-    padding: 0.75rem; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;
+.game-poster-wrap { 
+    width: 100%; 
+    padding-top: 50%; 
+    position: relative; 
+    background: rgba(15, 23, 42, 0.15); /* Ультра-прозоре темне тло всередині картки */
+    border-bottom: 1px solid var(--panel-border); /* Тонка лінія розподілу */
 }
+.game-poster { 
+    position: absolute; 
+    top: 0; left: 0; width: 100%; height: 100%; 
+    display: flex; align-items: center; justify-content: center; 
+    font-size: 3.5rem; 
+}
+.harvest-bg { background: transparent; /* Повністю прозоре тло під пшеницею */ }
+.dev-bg { background: transparent; /* Повністю прозоре тло під лисицею */ opacity: 0.5; }
+
+.game-info { padding: 1.75rem; display: flex; flex-direction: column; flex: 1; }
+
+/* УНІФІКОВАНІ АТРИБУТИ ДЛЯ ВСІХ ВІКОН ІГОР */
+.game-card .game-info h3 { 
+    margin: 0 0 0.6rem 0; font-size: 1.4rem; 
+    color: var(--accent-yellow); /* Фірмовий жовтий колір для назви гри */
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5); /* Легка захисна чорна тінь тексту */
+    opacity: 0.35; /* Приховано на 65% у спокійному стані */
+    transition: opacity 0.3s ease;
+}
+.game-card .game-info p { 
+    margin: 0 0 1.5rem 0; font-size: 0.95rem; 
+    color: #ffffff; /* Сніжно-білий колір опису гри */
+    line-height: 1.5; flex: 1; opacity: 0.15; /* Приховано на 85% у спокійному стані */
+    transition: opacity 0.3s ease;
+}
+.game-card .play-btn {
+    background: rgba(15, 23, 42, 0.8); /* Чорнильне темне тло кнопки дій */
+    color: #ffffff; /* Білий колір тексту кнопки */
+    border: 1px solid #16a34a; /* Зелена фірмова рамка кнопки */
+    padding: 0.8rem; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; 
+    opacity: 0.4; /* Приховано на 60% у спокійному стані */
+    transition: all 0.3s ease;
+}
+
+/* ПРОЯВЛЕННЯ АТРИБУТІВ ДЛЯ АКТИВНОЇ ГРИ ПРИ НАВЕДЕННІ */
+.game-card:not(.locked):hover .game-info h3 { opacity: 1; }
+.game-card:not(.locked):hover .game-info p { opacity: 1; }
 .game-card:not(.locked):hover .play-btn {
-    background: #16a34a; box-shadow: 0 0 15px rgba(22, 163, 74, 0.4);
+    opacity: 1; background: #16a34a; /* Зелений колір при ховері */
+    box-shadow: 0 0 15px rgba(22, 163, 74, 0.5); /* Зелене неонове підсвічування кнопки */
 }
-.game-card.locked { opacity: 0.6; }
-.game-card.locked .play-btn { border-color: #475569; color: var(--text-muted); cursor: not-allowed; }
 
-/* Нижня патріотична панель */
-.patriotic-bar { display: flex; justify-content: center; gap: 1rem; padding: 1.5rem; }
-.pat-btn { border: none; padding: 0.5rem 1.2rem; border-radius: 6px; font-weight: bold; color: white; cursor: pointer; font-size: 0.9rem; }
-.shana { background: #b91c1c; }
-.slava { background: #2563eb; border: 1px solid #60a5fa; }
-.trivoga { background: #ea580c; }
+/* ПРОЯВЛЕННЯ АТРИБУТІВ ДЛЯ ЗАБЛОКОВАНОЇ ГРИ ПРИ НАВЕДЕННІ */
+.game-card.locked .play-btn { 
+    border-color: #475569; /* Тьмяно-сіра рамка заблокованої кнопки */
+    color: #64748b; /* Сірий колір тексту неактивної кнопки */
+    cursor: not-allowed; background: rgba(15, 23, 42, 0.4); opacity: 0.3; 
+}
+.game-card.locked:hover .game-info h3 { opacity: 0.7; }
+.game-card.locked:hover .game-info p { opacity: 0.7; }
+.game-card.locked:hover .play-btn { opacity: 0.3; box-shadow: none; }
 
-/* Футер */
-footer { text-align: center; padding: 1.5rem 1rem; background: rgba(10, 14, 23, 0.9); border-top: 1px solid var(--panel-border); font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; }
-footer a { color: var(--accent-yellow); text-decoration: none; }
+/* Патріотичні кнопки */
+.patriotic-bar { display: flex; justify-content: center; gap: 1rem; padding: 2rem 1rem; }
+.pat-btn { border: none; padding: 0.6rem 1.4rem; border-radius: 6px; font-weight: bold; color: #ffffff; cursor: pointer; font-size: 0.9rem; transition: opacity 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
+.pat-btn:hover { opacity: 0.9; }
+.shana { background: #b91c1c; /* Темно-червоний колір кнопки Шана */ }
+.slava { background: #2563eb; /* Синій насичений колір кнопки Слава */ border: 1px solid #60a5fa; /* Блакитний світлий обводок кнопки Слава */ }
+.trivoga { background: #ea580c; /* Помаранчевий сигнальний колір кнопки Тривога */ }
+
+/* АТРИБУТИ ПІДВАЛУ */
+footer { 
+    text-align: center; padding: 2rem 1rem; 
+    background: rgba(10, 14, 23, 0.25); /* Ультра-прозоре чорне тло підвалу (25%) */
+    backdrop-filter: var(--blur-effect); -webkit-backdrop-filter: var(--blur-effect);
+    border-top: 1px solid var(--panel-border); font-size: 0.85rem; 
+    color: #ffffff; /* Білий колір копірайту */
+    line-height: 1.6; opacity: 0.25; transition: opacity 0.3s ease;
+}
+footer:hover { opacity: 1; /* Повне проявлення підвалу при наведенні курсору */ }
+footer a { color: var(--accent-yellow); text-decoration: none; font-weight: bold; }
 footer a:hover { text-decoration: underline; }
 
 /* Ігрове модальне вікно */
-.modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); }
-.modal-content { background-color: #151b2c; border: 1px solid var(--panel-border); margin: 10% auto; padding: 2rem; border-radius: 12px; width: 80%; max-width: 500px; position: relative; text-align: center; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
-.close-btn { position: absolute; right: 1.5rem; top: 1rem; font-size: 2rem; cursor: pointer; color: var(--text-muted); }
-.close-btn:hover { color: white; }
+.modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); /* Глибоке чорне затемнення екрана гри */ }
+.modal-content { 
+    background-color: rgba(21, 27, 44, 0.85); /* Напівпрозоре темно-синє ігрове вікно */
+    border: 1px solid var(--panel-border); backdrop-filter: var(--blur-effect); -webkit-backdrop-filter: var(--blur-effect);
+    margin: 10% auto; padding: 2.5rem 2rem; border-radius: 16px; width: 80%; max-width: 450px; position: relative; text-align: center; box-shadow: 0 0 40px rgba(0,0,0,0.7); 
+}
+.close-btn { position: absolute; right: 1.5rem; top: 1rem; font-size: 2rem; cursor: pointer; color: #64748b; /* Сірий колір хрестика виходу */ }
+.close-btn:hover { color: #ffffff; }
+
+/* --- НОВІ СТИЛІ ДЛЯ МОДАЛКИ ВЕРСІЙНОСТІ ТА ЕКОСИСТЕМИ САЙТІВ --- */
+.version-content {
+    max-width: 500px; /* Трохи ширше вікно для зручного розміщення специфікації */
+    text-align: left; /* Вирівнювання по лівому краю для технічного тексту */
+}
+.v-info-line {
+    display: flex; justify-content: space-between;
+    padding: 0.6rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); /* Тонка лінія розподілу ліній */
+    font-size: 0.95rem; color: #cbd5e1; /* Світло-сірий колір ліній */
+}
+.v-info-line span { color: #94a3b8; /* Сірий відтінок для назв параметрів */ }
+
+/* Фірмова картка розробника Марка Оцтовича */
+.developer-card {
+    display: flex; gap: 1.2rem; align-items: center;
+    background: rgba(15, 23, 42, 0.4); /* Напівпрозоре темне тло картки девелопера */
+    border: 1px solid rgba(255,255,255,0.06); /* Легка рамка картки */
+    padding: 1.2rem; border-radius: 12px; margin-top: 1.5rem;
+}
+.dev-avatar {
+    font-size: 2.5rem; background: rgba(59,130,246,0.15); /* Блакитне тло іконки */
+    width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 50%;
+    border: 1px solid rgba(59,130,246,0.3); /* Синя межа іконки */
+}
+.dev-details h4 { margin: 0 0 0.2rem 0; color: #ffffff; font-size: 1.15rem; }
+.dev-details p { margin: 0 0 0.4rem 0; color: var(--accent-yellow); /* Жовтий статус архітектора */ font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.dev-details a { color: #60a5fa; /* Блакитне посилання на пошту */ text-decoration: none; font-size: 0.9rem; }
+.dev-details a:hover { text-decoration: underline; }
+
+/* Блок посилань на інші сайти мережі */
+.ecosystem-links {
+    display: flex; gap: 1rem; margin-top: 1rem;
+}
+.eco-site-btn {
+    flex: 1; display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem;
+    background: rgba(30, 41, 59, 0.4); /* Темно-сіре прозоре тло кнопок мережі */
+    border: 1px solid rgba(255,255,255,0.08); /* Рамка кнопок */
+    border-radius: 8px; text-decoration: none; transition: all 0.2s ease;
+}
+.eco-site-btn:hover {
+    background: rgba(59, 130, 246, 0.15); /* Блакитне тло кнопок при наведенні */
+    border-color: rgba(59, 130, 246, 0.4); /* Синя межа при наведенні */
+    transform: translateY(-2px);
+}
+.eco-icon { font-size: 1.5rem; }
+.eco-name { color: #ffffff; /* Білий колір назви інших сайтів */ font-size: 0.9rem; font-weight: 600; }

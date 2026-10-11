@@ -4,33 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BanderiZZation! — Казуальні українські ігри</title>
-    <!-- Підключаємо style.css точно так, як названо файл у провіднику -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- Фірмовий інфо-рядок вашої мережі сайтів -->
+    <!-- Фірмовий інформаційний рядок екосистеми зверху -->
     <div class="top-bar">
-        <span id="current-datetime">11.10.2026, 12:15:00</span>
+        <span id="current-datetime">11.10.2026, 13:37:00</span>
         <span class="location-badge">🇺🇦 Київ</span>
         <div class="top-controls">
             <span class="control-badge">Атмосфера: увімкнено 🔊</span>
-            <span class="version-badge">v1.0.0</span>
+            <!-- Перетворили версію на клікабельну кнопку -->
+            <span class="version-badge" onclick="openVersionModal()" style="cursor: pointer;">v1.0.7 ℹ️</span>
         </div>
     </div>
 
     <header>
         <h1>BanderiZZation!</h1>
-        <p class="subtitle">Платформа казуальних ігор з яскравим українським колоритом, гумором та мемами</p>
+        <div class="subtitle-box">
+            <p class="subtitle">Платформа казуальних ігор з яскравим українским колоритом, гумором та мемами</p>
+        </div>
     </header>
 
     <main class="games-grid">
-             <!-- Картка першої гри з епічним постером -->
+        <!-- Картка першої гри -->
         <div class="game-card">
             <span class="status-badge badge-active">Доступно</span>
             <div class="game-poster-wrap">
-                <!-- Підставляємо ваш завантажений постер -->
-                <img src="poster1.jfif" alt="BanderiZZation Постер" class="game-img-poster">
+                <div class="game-poster harvest-bg">🌾</div>
             </div>
             <div class="game-info">
                 <h3>Збирай Врожай</h3>
@@ -38,7 +39,6 @@
                 <button class="play-btn" onclick="startGame('harvest')">Грати зараз</button>
             </div>
         </div>
->
 
         <!-- Картка другої гри -->
         <div class="game-card locked">
@@ -54,11 +54,48 @@
         </div>
     </main>
 
-    <!-- Модальне вікно для гри -->
+    <!-- Модальне вікно для ігор -->
     <div id="game-modal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeGame()">&times;</span>
             <div id="game-container"></div>
+        </div>
+    </div>
+
+    <!-- НОВЕ МОДАЛЬНЕ ВІКНО ВЕРСІЙНОСТІ ТА ЕКОСИСТЕМИ СAЙТІВ -->
+    <div id="version-modal" class="modal">
+        <div class="modal-content version-content">
+            <span class="close-btn" onclick="closeVersionModal()">&times;
+</span>
+            
+            <h2 style="color: var(--accent-yellow); margin-bottom: 1.5rem; font-size: 1.6rem;">Специфікація платформи ℹ️</h2>
+            
+            <div class="v-info-line"><span>Поточна версія:</span> <strong style="color: #22c55e;">v1.0.7 Stable</strong></div>
+            <div class="v-info-line"><span>Остання редакція:</span> <strong>2026-10-11 13:37</strong></div>
+            
+            <!-- Фірмова плашка розробника -->
+            <div class="developer-card">
+                <div class="dev-avatar">👨‍💻</div>
+                <div class="dev-details">
+                    <h4>Афтіпа Марко Оцтович</h4>
+                    <p>Головний архітектор екосистеми</p>
+                    <a href="mailto:antiruskontrol@ukr.net">antiruskontrol@ukr.net</a>
+                </div>
+            </div>
+
+            <h3 style="color: #ffffff; margin: 1.5rem 0 1rem 0; font-size: 1.1rem; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1rem;">Наші інші проекти в мережі:</h3>
+            
+            <!-- Посилання-іконки на ваші інші сайти -->
+            <div class="ecosystem-links">
+                <a href="https://github.io" target="_blank" class="eco-site-btn">
+                    <span class="eco-icon">🌤️</span>
+                    <span class="eco-name">WeatherInUkraine</span>
+                </a>
+                <a href="https://github.io" target="_blank" class="eco-site-btn">
+                    <span class="eco-icon">🛡️</span>
+                    <span class="eco-name">UAFilter</span>
+                </a>
+            </div>
         </div>
     </div>
 
@@ -70,7 +107,7 @@
     </div>
 
     <footer>
-        <p>Автор: Антірус-Контроль | Зворотний зв'язок: <a href="mailto:antiruskontrol@ukr.net">antiruskontrol@ukr.net</a></p>
+        <p>Автор: Афтіпа Марко Оцтович | Зворотний зв'язок: <a href="mailto:antiruskontrol@ukr.net">antiruskontrol@ukr.net</a></p>
         <p>Kyiv Ukraine 2026</p>
     </footer>
 
