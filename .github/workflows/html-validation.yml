@@ -1,4 +1,4 @@
-name: HTML Validation
+name: Code Quality Validation
 
 on:
   push:
@@ -7,13 +7,14 @@ on:
     branches: [ "main", "master" ]
 
 jobs:
-  htmlhint:
-    name: Validate HTML Quality
+  linting:
+    name: Code Quality Checks
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Перевірка HTML (завжди працює безвідмовно "з коробки")
       - name: Run HTMLHint
         run: npx htmlhint **/*.html --ignore google*.html
