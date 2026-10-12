@@ -1,18 +1,21 @@
 ===================================================================
-Версія:       1.1.3 (BanderiZZation! Hub — style.css Частина 1)
-Дата, час:    2026-10-12 09:40
+Версія:       1.1.4 (BanderiZZation! Hub — style.css Частина 1)
+Дата, час:    2026-10-12 10:15
 Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
 -------------------------------------------------------------------
 Еволюція змін:
- Зміни 1.0.1 - 1.1.1:
-  [Архів оновлень тла, карток, неону, версійності, маски та фіксації бару]
- Зміни 1.1.2 відносно 1.1.1:
-  1. Кнопки хабу (.hub-btn) та стилі підсторінок (comments, donate).
- Зміни 1.1.3 відносно 1.1.2 (Поточна версія):
-  1. Великі кнопки-картки (.hub-card): іконка в квадраті, жирний підпис,
-     зелений неон і підйом при наведенні.
-  2. Інфо-панелі (.hub-popup): з'являються під кнопкою при наведенні,
-     зелена неонова рамка; на пристроях без hover приховані.
+ Зміни 1.0.1 - 1.1.2:
+  [Архів оновлень тла, карток, неону, маски, фіксації бару, підсторінок]
+ Зміни 1.1.3 відносно 1.1.2:
+  1. Кнопки-картки (.hub-card) та інфо-панелі (.hub-popup).
+ Зміни 1.1.4 відносно 1.1.3 (Поточна версія):
+  1. Підсторінки: весь текст — яскраво-помаранчевий неон (--orange-text).
+  2. Кнопка «← До хабу»: приклеєна (fixed), скло, зелений неон при наведенні.
+  3. Кнопки-картки хабу: яскравіша зелена підсвітка та більший ореол.
+  4. ВСІ спливаючі елементи (вікно версії, інфо-панелі, маска затемнення):
+     плавна поява/зникнення через opacity, час у змінній --fade-time (1.2 с).
+  5. Кнопка версії (.version-badge): помаранчевий неон зовні при наведенні.
+  6. Іконка 💙 (.hub-heart): постійний блакитний неон і пульс 55 ударів/хв.
 ===================================================================
 :root {
     --main-bg: #0b0f19; /* Глибокий темно-синій колір загального тла */
@@ -607,4 +610,122 @@ body.sub-page { padding-top: 0; }
         visibility: visible;
         transform: translateY(0);
     }
+}
+
+/* --- v1.1.4: ЗМІННІ --- */
+:root {
+    --fade-time: 1.2s;               /* Час плавної появи/зникнення всіх вікон */
+    --orange-text: #ff7a18;          /* Яскраво-помаранчевий неон для тексту */
+    --orange-text-glow: rgba(255, 122, 24, 0.85);
+}
+
+/* --- ПРАВКА 3: ПЛАВНІСТЬ ВСІХ ВСПЛИВАЮЧИХ ВІКОН (тільки opacity, без зсуву) --- */
+.neon-version-popup {
+    transform: none;
+    transition: opacity var(--fade-time) ease-in-out, visibility var(--fade-time) ease-in-out;
+}
+.screen-overlay {
+    transition: opacity var(--fade-time) ease-in-out, visibility var(--fade-time) ease-in-out;
+}
+.hub-popup {
+    transform: none;
+    transition: opacity var(--fade-time) ease-in-out, visibility var(--fade-time) ease-in-out;
+}
+
+/* --- ПРАВКА 2: ЯСКРАВІША ПІДСВІТКА КНОПОК ХАБУ ТА БІЛЬШИЙ ОРЕОЛ --- */
+.hub-card:hover,
+.hub-card:focus-visible {
+    border-color: #4ade80; /* Світліша зелена рамка */
+    background: rgba(34, 197, 94, 0.22);
+    box-shadow: 0 0 30px rgba(74, 222, 128, 0.95), 0 0 60px rgba(34, 197, 94, 0.6), 0 0 100px rgba(34, 197, 94, 0.4);
+}
+
+/* --- ПРАВКА 4: ПОМАРАНЧЕВИЙ НЕОН ТІЛЬКИ ДЛЯ КНОПКИ ВЕРСІЇ --- */
+.version-badge { cursor: pointer; transition: all 0.3s ease-in-out; }
+.version-trigger-zone:hover .version-badge {
+    border-color: #ff7a18;
+    color: #ff7a18;
+    background: rgba(234, 88, 12, 0.2);
+    box-shadow: 0 0 14px rgba(255, 122, 24, 0.9), 0 0 28px rgba(234, 88, 12, 0.6);
+    text-shadow: 0 0 6px rgba(255, 122, 24, 0.8);
+}
+
+/* --- ПРАВКА 1: ПІДСТОРІНКИ — ПОМАРАНЧЕВИЙ НЕОНОВИЙ ТЕКСТ --- */
+body.sub-page,
+.sub-page .sub-title,
+.sub-page .sub-text,
+.sub-page #comment-form label,
+.sub-page .char-counter,
+.sub-page .comment-email,
+.sub-page .comment-date,
+.sub-page .comment-text {
+    color: var(--orange-text);
+    text-shadow: 0 0 6px var(--orange-text-glow), 0 0 12px rgba(255, 122, 24, 0.55);
+}
+
+.sub-page #comment-form input[type="email"],
+.sub-page #comment-form textarea {
+    color: var(--orange-text);
+    caret-color: var(--orange-text);
+    text-shadow: 0 0 5px rgba(255, 122, 24, 0.6);
+}
+.sub-page #comment-form input::placeholder,
+.sub-page #comment-form textarea::placeholder {
+    color: rgba(255, 122, 24, 0.5);
+    text-shadow: none;
+}
+
+/* --- КНОПКА «← ДО ХАБУ»: ПРИКЛЕЄНА, СКЛО, ЗЕЛЕНИЙ ХОВЕР --- */
+.sub-page .sub-wrap { padding-top: 5rem; }
+
+.sub-page .back-link {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 100;
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+    padding: 0.6rem 1.1rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 700;
+    color: #ffffff;
+    background: rgba(15, 23, 42, 0.45); /* Скляне тло */
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s ease-in-out;
+}
+.sub-page .back-link:hover,
+.sub-page .back-link:focus-visible {
+    text-decoration: none;
+    outline: none;
+    border-color: #4ade80;
+    background: rgba(22, 163, 74, 0.2);
+    box-shadow: 0 0 20px rgba(74, 222, 128, 0.9), 0 0 40px rgba(34, 197, 94, 0.5);
+    transform: translateY(-3px);
+}
+
+/* --- ПРАВКА 5: ІКОНКА 💙 — БЛАКИТНИЙ НЕОН І ПУЛЬС 55 УДАРІВ/ХВ (60/55 = 1.0909 с) --- */
+.hub-heart {
+    display: inline-block;
+    transform-origin: center;
+    filter: drop-shadow(0 0 4px #3b82f6) drop-shadow(0 0 10px #60a5fa);
+    animation: heartbeat-55 1.0909s infinite ease-in-out;
+}
+
+@keyframes heartbeat-55 {
+    0%   { transform: scale(1);    filter: drop-shadow(0 0 4px #3b82f6)  drop-shadow(0 0 10px #60a5fa); }
+    14%  { transform: scale(1.25); filter: drop-shadow(0 0 8px #3b82f6)  drop-shadow(0 0 20px #93c5fd); }
+    28%  { transform: scale(1);    filter: drop-shadow(0 0 4px #3b82f6)  drop-shadow(0 0 10px #60a5fa); }
+    42%  { transform: scale(1.15); filter: drop-shadow(0 0 6px #3b82f6)  drop-shadow(0 0 15px #7dd3fc); }
+    70%  { transform: scale(1);    filter: drop-shadow(0 0 4px #3b82f6)  drop-shadow(0 0 10px #60a5fa); }
+    100% { transform: scale(1);    filter: drop-shadow(0 0 4px #3b82f6)  drop-shadow(0 0 10px #60a5fa); }
+}
+
+/* Якщо в системі увімкнено «зменшити рух»: пульс вимкнено, блакитне свічення лишається */
+@media (prefers-reduced-motion: reduce) {
+    .hub-heart { animation: none; }
 }
