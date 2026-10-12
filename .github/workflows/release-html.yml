@@ -1,0 +1,41 @@
+name: HTML Validation & Release
+
+on:
+  push:
+    # Запускається при пуші будь-якого тегу версії (наприклад: v1.0, v2.1.3)
+    tags:
+      - 'v*'
+
+jobs:
+  validation-and-release:
+    name: Validate and Deploy HTML Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 1. Перевірка якості HTML перед релізом
+      - name: Run HTMLHint
+        run: npx htmlhint **/*.html --ignore google*.html
+
+      # 2. Автоматичне створення ZIP-архіву з HTML-файлами на льоту
+      - name: Archive HTML Files
+        run: |
+          echo "Збираємо файли в архів..."
+          zip -r html-project-release.zip . -x "*.git*" ".github*"
+
+      # 3. Публікація релізу на GitHub та завантаження туди нашого ZIP
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: html-project-release.zip
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: |
+            Автоматичний реліз веб-сайту для версії ${{ github.ref_name }}.
+            Усі HTML-файли успішно пройшли валідацію через HTMLHint.
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
