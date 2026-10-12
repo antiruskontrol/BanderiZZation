@@ -1,15 +1,15 @@
-name: HTML Validation & Release
+name: HTML Validation & Automated Release
 
 on:
   push:
-    # Запускається при пуші будь-якого тегу версії (наприклад: v1.0, v2.1.3)
-    tags:
-      - 'v*'
+    branches: [ "main", "master" ] # Автозапуск при кожному коміті в ці гілки
 
 jobs:
   validation-and-release:
     name: Validate and Deploy HTML Release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Дозвіл на створення та оновлення релізів
 
     steps:
       - name: Checkout code
@@ -19,23 +19,48 @@ jobs:
       - name: Run HTMLHint
         run: npx htmlhint **/*.html --ignore google*.html
 
-      # 2. Автоматичне створення ZIP-архіву з HTML-файлами на льоту
+      # 2. Автоматично зчитуємо версію (наприклад, 1.7.0) з файлу index.html
+      - name: Extract Version from index.html
+        id: get_version
+        run: |
+          node -e "
+            const fs = require('fs');
+            const html = fs.readFileSync('index.html', 'utf8');
+            const match = html.match(/Версія:\s*([\d.]+)/i);
+            
+            if (!match) {
+              console.error('Помилка: Не вдалося знайти версію в index.html!');
+              process.exit(1);
+            }
+            
+            const version = match[1];
+            console.log('Знайдено версію проекту:', version);
+            fs.appendFileSync(process.env.GITHUB_ENV, 'APP_VERSION=' + version + '\n');
+          "
+
+      # 3. Створення ZIP-архіву з назвою поточної версії проєкту BanderiZZation
       - name: Archive HTML Files
         run: |
-          echo "Збираємо файли в архів..."
-          zip -r html-project-release.zip . -x "*.git*" ".github*"
+          echo "Збираємо файли в архів для версії v${{ env.APP_VERSION }}..."
+          zip -r banderizzation-v${{ env.APP_VERSION }}.zip . -x "*.git*" ".github*" "banderizzation-*.zip"
 
-      # 3. Публікація релізу на GitHub та завантаження туди нашого ZIP
-      - name: Create GitHub Release
+      # 4. Публікація або оновлення єдиного стабільного релізу
+      - name: Create or Update GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: html-project-release.zip
-          tag_name: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
+          files: banderizzation-v${{ env.APP_VERSION }}.zip
+          tag_name: latest
+          name: BanderiZZation Build v${{ env.APP_VERSION }}
+          make_latest: "true"
+          overwrite: true
           body: |
-            Автоматичний реліз веб-сайту для версії ${{ github.ref_name }}.
+            ## 🚀 Актуальна стабільна збірка проєкту BanderiZZation
+            Поточна версія сторінки: **v${{ env.APP_VERSION }}**.
             Усі HTML-файли успішно пройшли валідацію через HTMLHint.
-          draft: false
-          prerelease: false
+
+            ⏱️ _Останні зміни: ${{ github.event.head_commit.message }} (коміт ${{ github.sha }})_
+
+            ### 📦 Інструкція:
+            Цей архів містить повну копію вихідного коду проєкту. Ви можете завантажити його для локального використання або розміщення на хостингу.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
