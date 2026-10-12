@@ -1,4 +1,4 @@
-name: HTML Validation
+name: Code Quality Validation
 
 on:
   push:
@@ -7,13 +7,23 @@ on:
     branches: [ "main", "master" ]
 
 jobs:
-  htmlhint:
-    name: Validate HTML Quality
+  linting:
+    name: Code Quality Checks
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 1. Перевірка HTML
       - name: Run HTMLHint
         run: npx htmlhint **/*.html --ignore google*.html
+
+      # 2. Перевірка CSS
+      - name: Lint CSS
+        run: |
+          if ls *.css 1> /dev/null 2>&1; then
+            npx stylelint "*.css" --allow-empty-input
+          else
+            echo "CSS файлів не знайдено, пропускаємо."
+          fi
