@@ -1,23 +1,19 @@
-/*
 ===================================================================
-Версія:       1.1.1 (BanderiZZation! Hub — style.css Частина 1)
-Дата, час:    2026-10-11 15:21
+Версія:       1.1.2 (BanderiZZation! Hub — style.css Частина 1)
+Дата, час:    2026-10-12 08:30
 Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
 -------------------------------------------------------------------
 Еволюція змін:
- Зміни 1.0.1 - 1.0.9:
-  [Архів оновлень тла, карток, розміщення тексту, неону та версійності]
- Зміни 1.1.0 відносно 1.0.9:
-  1. Повноекранна маска: інтегровано клас `.screen-overlay` для плавного 
-     та повного затемнення всього сайту на 65% при ховері на версію.
- Зміни 1.1.1 відносно 1.1.0 (Поточна версія):
-  1. Фіксація панелі: для класу `.top-bar` додано властивість `position: fixed`, 
-     завдяки чому верхній інформаційний рядок тепер завжди приклеєний до екрана 
-     і не зникає при прокручуванні сторінки вниз.
-  2. Відступи: додано верхній відступ для блоку `body`, щоб закріплена панель 
-     не перекривала шапку сайту при першому завантаженні.
+ Зміни 1.0.1 - 1.1.0:
+  [Архів оновлень тла, карток, неону, версійності та повноекранної маски]
+ Зміни 1.1.1 відносно 1.1.0:
+  1. Фіксація верхньої панелі (position: fixed) та верхній відступ для body.
+ Зміни 1.1.2 відносно 1.1.1 (Поточна версія):
+  1. Кнопки хабу (.hub-btn): скло, тонка рамка, зовнішній зелений неон при hover.
+  2. Підсторінки (comments.html, donate.html): .sub-page, .sub-wrap,
+     .glass-panel, форма, поле-пастка, список коментарів, .back-link.
 ===================================================================
-*/
+
 
 :root {
     --main-bg: #0b0f19; /* Глибокий темно-синій колір загального тла */
@@ -399,3 +395,122 @@ body:has(.version-trigger-zone:hover) .screen-overlay {
     box-shadow: 0 0 12px var(--orange-neon-glow);
     transform: translateY(-2px);
 }
+
+/* --- v1.1.2: КНОПКИ ХАБУ (замість карток ігор) --- */
+.hub-menu {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    padding: 3rem 2rem;
+    flex: 1;
+}
+
+.hub-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-width: 200px;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #ffffff;
+    cursor: pointer;
+    background: rgba(15, 23, 42, 0.35); /* Напівпрозоре темне скло */
+    border: 1px solid rgba(34, 197, 94, 0.35); /* Тонка зелена рамка у спокої */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s ease-in-out;
+}
+/* Наведення: зовнішній зелений неон, як у кнопок-логотипів */
+.hub-btn:hover {
+    background: rgba(22, 163, 74, 0.2);
+    border-color: #22c55e;
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.8), 0 0 35px rgba(34, 197, 94, 0.4);
+    transform: translateY(-4px);
+}
+.hub-btn:focus-visible { outline: 2px solid #22c55e; outline-offset: 3px; }
+.hub-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+.hub-btn-small { min-width: 160px; padding: 0.6rem 1.2rem; font-size: 0.95rem; }
+
+/* --- v1.1.2: ПІДСТОРІНКИ (коментарі, донати) --- */
+body.sub-page { padding-top: 0; }
+
+.sub-wrap {
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 2rem 1rem 3rem;
+    box-sizing: border-box;
+}
+
+.back-link {
+    display: inline-block;
+    margin-bottom: 1.2rem;
+    color: var(--accent-yellow);
+    text-decoration: none;
+    font-weight: bold;
+}
+.back-link:hover { text-decoration: underline; }
+
+.glass-panel {
+    background: rgba(10, 15, 30, 0.45);
+    border: 1px solid var(--panel-border);
+    border-radius: 16px;
+    padding: 1.75rem;
+    margin-bottom: 1.5rem;
+    backdrop-filter: var(--blur-effect);
+    -webkit-backdrop-filter: var(--blur-effect);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+}
+
+.sub-title { margin: 0 0 0.6rem 0; font-size: 1.8rem; color: var(--accent-yellow); }
+.sub-title-small { font-size: 1.3rem; }
+.sub-text { margin: 0 0 1.2rem 0; color: var(--text-muted); line-height: 1.5; }
+
+#comment-form label { display: block; margin: 0.9rem 0 0.35rem; font-weight: 600; color: #f1f5f9; }
+#comment-form input[type="email"],
+#comment-form textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.7rem 0.9rem;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(15, 23, 42, 0.6);
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 1rem;
+    resize: vertical;
+}
+#comment-form input:focus,
+#comment-form textarea:focus {
+    outline: none;
+    border-color: #22c55e;
+    box-shadow: 0 0 12px rgba(34, 197, 94, 0.5);
+}
+.char-counter { margin: 0.3rem 0 1rem; text-align: right; font-size: 0.8rem; color: #94a3b8; }
+
+/* Поле-пастка від ботів: поза екраном, не display:none */
+.hp-field { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+
+.form-status { margin-top: 0.9rem; min-height: 1.2rem; font-size: 0.95rem; }
+.form-status.ok { color: #22c55e; }
+.form-status.err { color: #f87171; }
+
+.comments-list { display: flex; flex-direction: column; gap: 0.9rem; }
+.comment-item {
+    padding: 0.9rem 1rem;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.comment-head { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: 0.4rem; font-size: 0.85rem; }
+.comment-email { color: #93c5fd; font-weight: 600; }
+.comment-date { color: #94a3b8; }
+.comment-text { margin: 0; color: #ffffff; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
