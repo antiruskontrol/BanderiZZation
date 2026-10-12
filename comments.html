@@ -1,0 +1,57 @@
+<!--
+===================================================================
+Версія:       1.0.0 (BanderiZZation! Hub — comments.html)
+Дата, час:    2026-10-12 08:30
+Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
+-------------------------------------------------------------------
+Еволюція змін:
+ Зміни 1.0.0 (Поточна версія):
+  1. Нова сторінка коментарів: форма (пошта + текст) і список коментарів.
+  2. Логіка та підключення Firebase — у файлі comments.js.
+===================================================================
+-->
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Коментарі — BanderiZZation!</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" sizes="144x144" href="favicon.png">
+</head>
+<body class="sub-page">
+
+    <div class="sub-wrap">
+        <a class="back-link" href="index.html">← До хабу</a>
+
+        <section class="glass-panel">
+            <h2 class="sub-title">Коментарі</h2>
+            <p class="sub-text">Додайте коментар, якщо маєте пошту.</p>
+
+            <form id="comment-form" novalidate>
+                <label for="c-email">Пошта</label>
+                <input id="c-email" type="email" maxlength="254" placeholder="name@gmail.com" autocomplete="email" required>
+
+                <label for="c-text">Коментар</label>
+                <textarea id="c-text" rows="4" maxlength="500" placeholder="Ваш коментар (до 500 символів)" required></textarea>
+                <div class="char-counter"><span id="c-count">0</span> / 500</div>
+
+                <!-- Поле-пастка від ботів: людина його не бачить -->
+                <input id="c-website" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp-field">
+
+                <button id="c-submit" type="submit" class="hub-btn hub-btn-small">Надіслати</button>
+                <div id="form-status" class="form-status" role="status" aria-live="polite"></div>
+            </form>
+        </section>
+
+        <section class="glass-panel">
+            <h3 class="sub-title sub-title-small">Усі коментарі</h3>
+            <div id="comments-list" class="comments-list">
+                <p class="sub-text">Завантаження…</p>
+            </div>
+        </section>
+    </div>
+
+    <script type="module" src="comments.js"></script>
+</body>
+</html>

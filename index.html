@@ -1,18 +1,20 @@
 <!--
 ===================================================================
-Версія:       1.1.4 (BanderiZZation! Hub — index.html)
-Дата, час:    2026-10-11 15:54
+Версія:       1.1.5 (BanderiZZation! Hub — index.html)
+Дата, час:    2026-10-12 08:30
 Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
 -------------------------------------------------------------------
 Еволюція змін:
- Зміни 1.0.1 - 1.0.8: [Архів структурних оновлень, копірайтів та ігрових модулів]
- Зміни 1.0.9 - 1.1.1: [Інтеграція маски, фіксація верхнього бару та hover-вікна]
- Зміни 1.1.2 відносно 1.1.1:
-  1. Екосистема: додано реальні робочі адреси для кнопок-логотипів та робочі PNG іконки.
- Зміни 1.1.4 відносно 1.1.2 (Поточна версія):
-  1. Масштабування: іконки-логотипи успішно збільшено на 200% (до 64px).
-  2. Зелений неон: додано ефект соковитого неонового свічення та підсвічування 
-     рамок при наведенні курсору мишки, а текстові підписи прибрано для чистоти стилю.
+ Зміни 1.0.1 - 1.1.2: [Архів структурних оновлень, ігрових модулів, маски,
+                       верхнього бару, hover-вікна та кнопок-логотипів]
+ Зміни 1.1.4 відносно 1.1.2:
+  1. Масштабування логотипів до 64px та зелений неон при наведенні.
+ Зміни 1.1.5 відносно 1.1.4 (Поточна версія):
+  1. Прибрано дві картки ігор («Збирай Врожай», «Козацький Драйв») та
+     модальне вікно гри.
+  2. Додано дві кнопки-посилання у стилі сайту (клас .hub-btn, зелений
+     неон при наведенні): «Коментарі» -> comments.html, «Донати» -> donate.html.
+  3. Оновлено версію/дату/час у верхньому барі та вікні версії.
 ===================================================================
 -->
 <!DOCTYPE html>
@@ -55,26 +57,26 @@
 
     <!-- Фірмовий інформаційний рядок екосистеми зверху -->
     <div class="top-bar">
-        <span id="current-datetime">11.10.2026, 15:54:00</span>
+        <span id="current-datetime">12.10.2026, 08:30:00</span>
         <span class="location-badge">🇺🇦 Київ</span>
         <div class="top-controls">
             <span class="control-badge">Атмосфера: увімкнено 🔊</span>
             
             <!-- ЗОНА ТРИГЕРА: Кнопка версії + вкладене прозоре вікно -->
             <div class="version-trigger-zone">
-                <span class="version-badge">v1.1.4 ℹ️</span>
+                <span class="version-badge">v1.1.5 ℹ️</span>
                 
                 <!-- Прозоре вікно, яке плавно проявляється помаранчевим неоном при ховері -->
                 <div class="neon-version-popup">
-                    <div class="neon-line">ВЕРСІЯ: v1.1.4 STABLE</div>
-                    <div class="neon-line">ДАТА: 2026-10-11</div>
-                    <div class="neon-line">ЧАС: 15:54:00</div>
+                    <div class="neon-line">ВЕРСІЯ: v1.1.5 STABLE</div>
+                    <div class="neon-line">ДАТА: 2026-10-12</div>
+                    <div class="neon-line">ЧАС: 08:30:00</div>
                     <div class="neon-line">РОЗРОБНИК: antiruskontrol@ukr.net</div>
                     
                     <!-- Плашка англійською мовою -->
                     <div class="neon-location-tag">KYIV UKRAINE 2026</div>
                     
-                    <!-- Фірмові кнопки-логотипи збільшені на 200% (64px на 64px) із зеленим неоном -->
+                    <!-- Фірмові кнопки-логотипи (64px на 64px) із зеленим неоном -->
                     <div class="logo-sites-grid" style="display: flex; gap: 1.2rem; margin-top: 1rem;">
                         <a href="https://antiruskontrol.github.io/WeatherInUkraine/" target="_blank" class="logo-site-link-custom" title="WeatherInUkraine">
                             <img src="weather-logo.png" alt="Weather" style="width: 64px; height: 64px; object-fit: contain; border-radius: 6px;">
@@ -99,41 +101,11 @@
         </div>
     </header>
 
-    <main class="games-grid">
-        <!-- Картка першої гри -->
-        <div class="game-card">
-            <span class="status-badge badge-active">Доступно</span>
-            <div class="game-poster-wrap">
-                <div class="game-poster harvest-bg">🌾</div>
-            </div>
-            <div class="game-info">
-                <h3>Збирай Врожай</h3>
-                <p>Швидка казуальна гра: встигни наклікати якомога більше стиглої пшениці, поки тикає таймер!</p>
-                <button class="play-btn" onclick="startGame('harvest')">Грати зараз</button>
-            </div>
-        </div>
-
-        <!-- Картка другої гри -->
-        <div class="game-card locked">
-            <span class="status-badge badge-dev">У розробці</span>
-            <div class="game-poster-wrap">
-                <div class="game-poster dev-bg">🦊</div>
-            </div>
-            <div class="game-info">
-                <h3>Козацький Драйв</h3>
-                <p>Епічний казуальний раннер. Збирайте кавуни, оминайте перешкоди та ставте рекорди!</p>
-                <button class="play-btn" disabled>Незабаром</button>
-            </div>
-        </div>
+    <!-- v1.1.5: замість карток ігор — дві кнопки-посилання на окремі сторінки -->
+    <main class="hub-menu">
+        <a class="hub-btn" href="comments.html">💬 Коментарі</a>
+        <a class="hub-btn" href="donate.html">💙 Донати</a>
     </main>
-
-    <!-- Модальне вікно для гри -->
-    <div id="game-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeGame()">&times;</span>
-            <div id="game-container"></div>
-        </div>
-    </div>
 
     <!-- Фірмові патріотичні кнопки -->
     <div class="patriotic-bar">
