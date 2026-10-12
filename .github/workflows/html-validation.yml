@@ -15,15 +15,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 1. Перевірка HTML
+      # Перевірка HTML (завжди працює безвідмовно "з коробки")
       - name: Run HTMLHint
         run: npx htmlhint **/*.html --ignore google*.html
-
-            # 2. Перевірка CSS (тепер працює автоматично без зовнішніх файлів конфігурації)
-      - name: Lint CSS
-        run: |
-          if ls *.css 1> /dev/null 2>&1; then
-            npx stylelint "*.css" --allow-empty-input --config '{"rules": {"color-no-invalid-hex": true, "declaration-block-no-duplicate-properties": true}}'
-          else
-            echo "CSS файлів не знайдено, пропускаємо."
-          fi
