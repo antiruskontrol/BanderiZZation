@@ -1,28 +1,111 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://sitemaps.org">
+name: HTML Validation & Automated Release
 
-  <!-- Головна сторінка сайту -->
-  <url>
-    <loc>https://github.io</loc>
-    <lastmod>2026-10-12</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>1.00</priority>
-  </url>
+on:
+  push:
+    branches: [ "main", "master" ] # Запуск при кожному коміті
 
-  <!-- Сторінка коментарів (оновлюється постійно через Firebase) -->
-  <url>
-    <loc>https://github.iocomments.html</loc>
-    <lastmod>2026-10-12</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.90</priority>
-  </url>
+jobs:
+  validation-and-release:
+    name: Validate and Deploy HTML Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Дозвіл на зміну та пакування файлів у репозиторії
 
-  <!-- Сторінка донатів (активна фаза збору/модифікацій) -->
-  <url>
-    <loc>https://github.iodonate.html</loc>
-    <lastmod>2026-10-12</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.85</priority>
-  </url>
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v4
 
-</urlset>
+      # 1. Перевірка якості HTML
+      - name: Run HTMLHint
+        run: npx htmlhint **/*.html --ignore google*.html
+
+      # 2. Автоматична динамічна генерація карти сайту sitemap.xml
+      - name: Generate Dynamic Sitemap
+        run: |
+          node -e "
+            const fs = require('fs');
+            const path = require('path');
+            
+            const baseUrl = 'https://github.io';
+            const today = new Date().toISOString().split('T')[0];
+            
+            // Зчитуємо всі файли в корені папки
+            const files = fs.readdirSync('.');
+            const htmlFiles = files.filter(file => file.endsWith('.html') && !file.startsWith('google'));
+            
+            let xml = '<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n';
+            xml += '<urlset xmlns=\"http://sitemaps.org\">\n';
+            
+            htmlFiles.forEach(file => {
+              let urlPath = file === 'index.html' ? '' : file;
+              let fullUrl = baseUrl + urlPath;
+              
+              // Налаштовуємо параметри залежно від важливості сторінки
+              let freq = 'daily';
+              let priority = '0.80';
+              
+              if (file === 'index.html' || file === 'comments.html') {
+                freq = 'always';
+                priority = file === 'index.html' ? '1.00' : '0.90';
+              } else if (file === 'donate.html') {
+                priority = '0.85';
+              }
+              
+              xml += '  <url>\n';
+              xml += '    <loc>' + fullUrl + '</loc>\n';
+              xml += '    <lastmod>' + today + '</lastmod>\n';
+              xml += '    <changefreq>' + freq + '</changefreq>\n';
+              xml += '    <priority>' + priority + '</priority>\n';
+              xml += '  </url>\n';
+            });
+            
+            xml += '</urlset>';
+            
+            fs.writeFileSync('sitemap.xml', xml);
+            console.log('Динамічний sitemap.xml успішно згенеровано! Знайдено сторінок:', htmlFiles.length);
+          "
+
+      # 3. Автоматично зчитуємо версію з файлу index.html
+      - name: Extract Version from index.html
+        id: get_version
+        run: |
+          node -e "
+            const fs = require('fs');
+            const html = fs.readFileSync('index.html', 'utf8');
+            const match = html.match(/Версія:\s*([\d.]+)/i);
+            
+            if (!match) {
+              console.error('Помилка: Не вдалося знайти версію в index.html!');
+              process.exit(1);
+            }
+            
+            const version = match[1];
+            console.log('Знайдено версію проекту BanderiZZation:', version);
+            fs.appendFileSync(process.env.GITHUB_ENV, 'APP_VERSION=' + version + '\n');
+          "
+
+      # 4. Створення ZIP-архіву (Свіжий sitemap.xml автоматично потрапляє сюди)
+      - name: Archive HTML & SEO Files
+        run: |
+          echo "Збираємо файли в архів для версії v\${{ env.APP_VERSION }}..."
+          zip -r banderizzation-v\${{ env.APP_VERSION }}.zip . -x "*.git*" ".github*" "banderizzation-*.zip"
+
+      # 5. Публікація або оновлення релізу на GitHub
+      - name: Create or Update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: banderizzation-v\${{ env.APP_VERSION }}.zip
+          tag_name: latest
+          name: BanderiZZation Build v\${{ env.APP_VERSION }}
+          make_latest: "true"
+          prerelease: false
+          body: |
+            ## 🚀 Актуальна стабільна збірка проєкту BanderiZZation
+            Поточна версія сторінки: **v\${{ env.APP_VERSION }}**.
+            
+            ✨ **Автоматизація:** Карта сайту `sitemap.xml` була автоматично перегенерована для всіх наявних HTML-сторінок.
+            Усі HTML-файли успішно пройшли автоматичну валідацію через HTMLHint.
+
+            ⏱️ _Останні зміни: \({{ github.event.head_commit.message }} (коміт \){{ github.sha }})_
+        env:
+          GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
