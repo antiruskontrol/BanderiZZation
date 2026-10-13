@@ -122,22 +122,22 @@ header h1 {
     display: inline-block; margin-top: 1.5rem; padding: 0.6rem 2rem; border-radius: 12px;
     background: rgba(10, 15, 30, 0.2); /* Тло підкладки тексту прозорістю 20% */
     backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.05); /* Тонка границя скла опису */
+    border: 1px solid rgba(222, 228, 55, 0.664); /* Тонка границя скла опису */
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); /* Тінь підкладки опису */
 }
 
 .subtitle { 
-    font-size: 1.35rem; color: #f1f5f9; /* Колір літер опису проекту */
+    font-size: 1.35rem; color: #38e8ff; /* Колір літер опису проекту */
     margin: 0; font-weight: 500; letter-spacing: 0.2px;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6); /* Тінь для букв */
 }
 
 @keyframes heartbeat {
-    0% { transform: scale(1); text-shadow: 0 0 10px var(--neon-glow-color), 0 0 20px var(--neon-glow-color), 0 4px 12px rgba(0, 0, 0, 0.7); }
-    14% { transform: scale(1.003); text-shadow: 0 0 16px var(--neon-glow-color), 0 0 28px var(--neon-glow-color), 0 4px 15px rgba(0, 0, 0, 0.8); }
-    28% { transform: scale(1); text-shadow: 0 0 10px var(--neon-glow-color), 0 0 20px var(--neon-glow-color), 0 4px 12px rgba(0, 0, 0, 0.7); }
-    42% { transform: scale(1.005); text-shadow: 0 0 22px var(--neon-glow-color), 0 0 38px var(--neon-glow-color), 0 0 50px var(--neon-glow-color), 0 4px 18px rgba(0, 0, 0, 0.9); }
-    70% { transform: scale(1); text-shadow: 0 0 10px var(--neon-glow-color), 0 0 20px var(--neon-glow-color), 0 4px 12px rgba(0, 0, 0, 0.7); }
+    0% { transform: scale(1); text-shadow: 0 0 10px var(--neon-glow-color), 0 0 20px var(--neon-glow-color), 0 4px 12px rgba(104, 26, 26, 0.7); }
+    14% { transform: scale(1.003); text-shadow: 0 0 16px var(--neon-glow-color), 0 0 28px var(--neon-glow-color), 0 4px 15px rgba(156, 9, 9, 0.8); }
+    28% { transform: scale(1); text-shadow: 0 0 10px var(--neon-glow-color), 0 0 20px var(--neon-glow-color), 0 4px 12px rgba(235, 107, 107, 0.7); }
+    42% { transform: scale(1.005); text-shadow: 0 0 22px var(--neon-glow-color), 0 0 38px var(--neon-glow-color), 0 0 50px var(--neon-glow-color), 0 4px 18px rgba(61, 24, 24, 0.9); }
+    70% { transform: scale(1); text-shadow: 0 0 10px var(--neon-glow-color), 0 0 20px var(--neon-glow-color), 0 4px 12px rgba(92, 30, 30, 0.7); }
 }
 
 /* Ігрова сітка карток */
