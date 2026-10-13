@@ -286,11 +286,11 @@ footer a:hover { text-decoration: underline; }
     /* Піднімаємо вікно на найвищий рівень, щоб воно лягало ПОВЕРХ усіх написів на сайті */
     z-index: 99999; 
     
-    background: rgba(10, 14, 23, 0.65); /* Напівпрозоре глибоке темне тло */
+    background: rgba(61, 104, 204, 0.65); /* Напівпрозоре глибоке темне тло */
     backdrop-filter: blur(28px);
     -webkit-backdrop-filter: blur(28px);
     border: 1px solid var(--orange-neon-glow); /* Помаранчева неонова рамка вікна */
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(234, 88, 12, 0.3);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(250, 94, 10, 0.962);
     
     /* Стан приховано за замовчуванням */
     opacity: 0;
@@ -354,7 +354,7 @@ body:has(.version-trigger-zone:hover) .screen-overlay {
     margin-bottom: 1.2rem;
     letter-spacing: 1px;
     padding-top: 0.6rem;
-    border-top: 1px solid rgba(234, 88, 12, 0.25); /* Помаранчева лінія розмежування */
+    border-top: 1px solid rgba(234, 34, 12, 0.94); /* Помаранчева лінія розмежування */
     color: var(--orange-neon); /* Помаранчевий колір літер */
     text-shadow: 0 0 8px var(--orange-neon-glow), 0 0 16px var(--orange-neon-glow); /* Постійний неон */
 }
@@ -377,7 +377,7 @@ body:has(.version-trigger-zone:hover) .screen-overlay {
     text-decoration: none;
     font-size: 1.3rem;
     background: rgba(15, 23, 42, 0.2); /* Повністю прозора основа кнопок */
-    border: 1px solid rgba(234, 88, 12, 0.4); /* Напівпрозорий помаранчевий контур */
+    border: 1px solid rgba(234, 90, 12, 0.7); /* Напівпрозорий помаранчевий контур */
     transition: all 0.25s ease;
 }
 
@@ -392,7 +392,7 @@ body:has(.version-trigger-zone:hover) .screen-overlay {
 
 /* Обробка наведення курсору на логотипи сайтів екосистеми */
 .logo-site-link:hover {
-    background: rgba(234, 88, 12, 0.15); /* Помаранчеве підсвічування кнопки при ховері */
+    background: rgba(67, 234, 12, 0.846); /* Помаранчеве підсвічування кнопки при ховері */
     border-color: var(--orange-neon);
     box-shadow: 0 0 12px var(--orange-neon-glow);
     transform: translateY(-2px);
@@ -421,7 +421,7 @@ body:has(.version-trigger-zone:hover) .screen-overlay {
     font-family: inherit;
     font-size: 1rem;
     font-weight: 700;
-    color: #ffffff;
+    color: #d31919;
     cursor: pointer;
     background: rgba(15, 23, 42, 0.35); /* Напівпрозоре темне скло */
     border: 1px solid rgba(34, 197, 94, 0.35); /* Тонка зелена рамка у спокої */
@@ -434,10 +434,10 @@ body:has(.version-trigger-zone:hover) .screen-overlay {
 .hub-btn:hover {
     background: rgba(22, 163, 74, 0.2);
     border-color: #22c55e;
-    box-shadow: 0 0 20px rgba(34, 197, 94, 0.8), 0 0 35px rgba(34, 197, 94, 0.4);
+    box-shadow: 0 0 20px rgba(107, 240, 25, 0.951), 0 0 35px rgba(34, 197, 94, 0.4);
     transform: translateY(-4px);
 }
-.hub-btn:focus-visible { outline: 2px solid #22c55e; outline-offset: 3px; }
+.hub-btn:focus-visible { outline: 2px solid #28f674; outline-offset: 3px; }
 .hub-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 .hub-btn-small { min-width: 160px; padding: 0.6rem 1.2rem; font-size: 0.95rem; }
 
