@@ -544,7 +544,7 @@ body.sub-page { padding-top: 0; }
 /* Наведення / фокус з клавіатури: зелений неон + підйом */
 .hub-card:hover,
 .hub-card:focus-visible {
-    border-color: #22c55e; /* Яскраво-зелена рамка */
+    border-color: #1af56a; /* Яскраво-зелена рамка */
     background: rgba(22, 163, 74, 0.12);
     box-shadow: 0 0 20px rgba(34, 197, 94, 0.8), 0 0 35px rgba(34, 197, 94, 0.4);
     transform: translateY(-4px);
@@ -560,7 +560,7 @@ body.sub-page { padding-top: 0; }
     justify-content: center;
     font-size: 1.9rem;
     border-radius: 12px;
-    background: rgba(15, 23, 42, 0.7);
+    background: rgba(0, 255, 242, 0.7);
     border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
