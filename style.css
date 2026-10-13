@@ -109,12 +109,17 @@ header {
 }
 
 header h1 { 
-    font-size: 3.5rem; margin: 0; display: inline-block; padding: 0.2rem 1.5rem; border-radius: 12px;
-    color: #ffffff; /* Основний колір тексту заголовка — білий */
+    font-size: 3.5rem;
+    margin: 0;
+    display: inline-block;
+    padding: 0.5rem 1.5rem;
+    border-radius: 12px;
+    color: #f500f5;
     letter-spacing: 0.5px;
-    background: rgba(15, 23, 42, 0.2); /* Прозоре темне тло підкладки заголовка */
-    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.03); /* Біла тонка рамка заголовка */
+    background: rgb(238 255 0 / 45%);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(px);
+    border: 1px solid rgb(243 24 24);
     animation: heartbeat 1.4s infinite ease-in-out;
 }
 
@@ -127,9 +132,9 @@ header h1 {
 }
 
 .subtitle { 
-    font-size: 1.35rem; color: #38e8ff; /* Колір літер опису проекту */
+    font-size: 1.35rem; color: #38ff3b; /* Колір літер опису проекту */
     margin: 0; font-weight: 500; letter-spacing: 0.2px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6); /* Тінь для букв */
+    text-shadow: 0 2px 4px rgba(226, 18, 18, 0.939); /* Тінь для букв */
 }
 
 @keyframes heartbeat {
