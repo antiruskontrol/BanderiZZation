@@ -659,15 +659,15 @@ body.sub-page,
 .sub-page .comment-email,
 .sub-page .comment-date,
 .sub-page .comment-text {
-    color: var(--orange-text);
-    text-shadow: 0 0 6px var(--orange-text-glow), 0 0 12px rgba(255, 122, 24, 0.55);
+ color: #800505;
+    text-shadow: 0 0 6px rgb(201 255 29), 0 0 12px rgba(255, 122, 24, 0.55);
 }
 
 .sub-page #comment-form input[type="email"],
 .sub-page #comment-form textarea {
     color: var(--orange-text);
     caret-color: var(--orange-text);
-    text-shadow: 0 0 5px rgba(255, 122, 24, 0.6);
+    text-shadow: 0 0 5px rgba(255, 141, 60, 0.6);
 }
 .sub-page #comment-form input::placeholder,
 .sub-page #comment-form textarea::placeholder {
