@@ -1,13 +1,15 @@
 <!--
 ===================================================================
-Версія:       1.0.0 (BanderiZZation! Hub — igroland.html)
-Дата, час:    2026-10-13 11:00
+Версія:       1.0.1 (BanderiZZation! Hub — igroland.html)
+Дата, час:    2026-10-13 12:00
 Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
 -------------------------------------------------------------------
 Еволюція змін:
- Зміни 1.0.0 (Поточна версія):
+ Зміни 1.0.0:
   1. Нова сторінка-заглушка «Ігроленд»: назва, опис і приклеєна кнопка
      «← До хабу». Стилі — у style.css (підсторінки, v1.1.4 і новіші).
+ Зміни 1.0.1 відносно 1.0.0 (Поточна версія):
+  1. Підключено common.js: верхня панель, плавні переходи (0.75 с), меню «Атмосфера», стрічка новин.
 ===================================================================
 -->
 <!DOCTYPE html>
@@ -17,6 +19,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ігроленд — BanderiZZation!</title>
     <link rel="stylesheet" href="style.css">
+    <script>document.documentElement.className += ' bz-pre';</script>
     <link rel="icon" type="image/png" sizes="144x144" href="favicon.png">
 </head>
 <body class="sub-page">
@@ -31,5 +34,6 @@
         </section>
     </div>
 
+    <script src="common.js"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 <!--
 ===================================================================
-Версія:       1.1.8 (BanderiZZation! Hub — index.html)
-Дата, час:    2026-10-13 11:00
+Версія:       1.1.9 (BanderiZZation! Hub — index.html)
+Дата, час:    2026-10-13 12:00
 Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
 -------------------------------------------------------------------
 Еволюція змін:
@@ -28,13 +28,21 @@
   2. Кнопки-логотипи у вікні версії: яскравіша зелена підсвітка та більший ореол
      при наведенні (узгоджено з кнопками хабу).
   3. Оновлено версію/дату/час у верхньому барі та вікні версії.
- Зміни 1.1.8 відносно 1.1.7 (Поточна версія):
+ Зміни 1.1.8 відносно 1.1.7:
   1. Додано дві кнопки-картки: «Кіноскоп» (kinoskop.html) та «Ігроленд»
      (igroland.html) з інфо-панелями; сітка кнопок 2×2.
   2. Поки сторінки не запущені, обидві кнопки мають клас hub-item--soon:
      червоний неон при наведенні (замість зеленого). Для запуску — прибрати
      цей клас, кнопка стане зеленою.
   3. Оновлено версію/дату/час у верхньому барі та вікні версії.
+ Зміни 1.1.9 відносно 1.1.8 (Поточна версія):
+  1. Плавні переходи між сторінками: затухання 0.75 с і проявлення 0.75 с (common.js).
+  2. Верхня панель прибрана зі статичної розмітки: тепер її вставляє common.js на всіх
+     сторінках (версія/дата/пошта — в одному місці, у константі SITE).
+  3. Годинник перенесено в common.js; script.js більше не підключається (можна видалити).
+  4. Меню «Атмосфера» (звук, композиції з папки sound, гучність, стрічка новин) — atmosphere.js;
+     стрічка новин унизу сторінки — news.js.
+  5. Вікно версії: клікабельна пошта (mailto).
 ===================================================================
 -->
 <!DOCTYPE html>
@@ -44,6 +52,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BanderiZZation! — Казуальні українські ігри</title>
     <link rel="stylesheet" href="style.css">
+    <script>document.documentElement.className += ' bz-pre';</script>
     
     <!-- Підключення нашої фавіконки -->
   <link rel="apple-touch-icon" sizes="144x144" href="favicon.png">
@@ -75,41 +84,7 @@
 </head>
 <body>
 
-    <!-- Фірмовий інформаційний рядок екосистеми зверху -->
-    <div class="top-bar">
-        <span id="current-datetime">12.10.2026, 08:30:00</span>
-        <span class="location-badge">🇺🇦 Київ</span>
-        <div class="top-controls">
-            <span class="control-badge">Атмосфера: увімкнено 🔊</span>
-            
-            <!-- ЗОНА ТРИГЕРА: Кнопка версії + вкладене прозоре вікно -->
-            <div class="version-trigger-zone">
-                <span class="version-badge">v1.1.8 ℹ️</span>
-                
-                <!-- Прозоре вікно, яке плавно проявляється помаранчевим неоном при ховері -->
-                <div class="neon-version-popup">
-                    <div class="neon-line">ВЕРСІЯ: v1.1.8 STABLE</div>
-                    <div class="neon-line">ДАТА: 2026-10-13</div>
-                    <div class="neon-line">ЧАС: 11:00:00</div>
-                    <div class="neon-line">РОЗРОБНИК: antiruskontrol@ukr.net</div>
-                    
-                    <!-- Плашка англійською мовою -->
-                    <div class="neon-location-tag">KYIV UKRAINE 2026</div>
-                    
-                    <!-- Фірмові кнопки-логотипи (64px на 64px) із зеленим неоном -->
-                    <div class="logo-sites-grid" style="display: flex; gap: 1.2rem; margin-top: 1rem;">
-                        <a href="https://antiruskontrol.github.io/WeatherInUkraine/" target="_blank" class="logo-site-link-custom" title="WeatherInUkraine">
-                            <img src="weather-logo.png" alt="Weather" style="width: 64px; height: 64px; object-fit: contain; border-radius: 6px;">
-                        </a>
-                        <a href="https://antiruskontrol.github.io/antirus-control/" target="_blank" class="logo-site-link-custom" title="UAFilter">
-                            <img src="antirus-logo.png" alt="UAFilter" style="width: 64px; height: 64px; object-fit: contain; border-radius: 6px;">
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </div>
+    <!-- Верхня панель (час, Київ, Атмосфера, версія) вставляється скриптом common.js -->
 
     <header>
         <!-- Назва проекту загорнута в окремий блок, щоб опис став точно під нею -->
@@ -195,6 +170,6 @@
     <!-- Окремий фірмовий блок маски для повного затемнення всього екрана -->
     <div class="screen-overlay"></div>
 
-    <script src="script.js"></script>
+    <script src="common.js"></script>
 </body>
 </html>

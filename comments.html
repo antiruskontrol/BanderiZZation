@@ -1,16 +1,18 @@
 <!--
 ===================================================================
-Версія:       1.0.1 (BanderiZZation! Hub — comments.html)
-Дата, час:    2026-10-12 10:15
+Версія:       1.0.2 (BanderiZZation! Hub — comments.html)
+Дата, час:    2026-10-13 12:00
 Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
 -------------------------------------------------------------------
 Еволюція змін:
  Зміни 1.0.0:
   1. Нова сторінка коментарів: форма (пошта + текст) і список коментарів.
   2. Логіка та підключення Firebase — у файлі comments.js.
- Зміни 1.0.1 відносно 1.0.0 (Поточна версія):
+ Зміни 1.0.1 відносно 1.0.0:
   1. Весь текст сторінки — яскраво-помаранчевий неон (стилі в style.css v1.1.4).
   2. Кнопка «← До хабу» приклеєна, скляна, із зеленим ховером (стилі в style.css).
+ Зміни 1.0.2 відносно 1.0.1 (Поточна версія):
+  1. Підключено common.js: верхня панель, плавні переходи (0.75 с), меню «Атмосфера», стрічка новин.
 ===================================================================
 -->
 <!DOCTYPE html>
@@ -20,6 +22,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Коментарі — BanderiZZation!</title>
     <link rel="stylesheet" href="style.css">
+    <script>document.documentElement.className += ' bz-pre';</script>
     <link rel="icon" type="image/png" sizes="144x144" href="favicon.png">
 </head>
 <body class="sub-page">
@@ -55,6 +58,7 @@
         </section>
     </div>
 
+    <script src="common.js"></script>
     <script type="module" src="comments.js"></script>
 </body>
 </html>
