@@ -1,23 +1,25 @@
-/*===================================================================
-Версія:       1.1.5 (BanderiZZation! Hub — style.css Частина 1)
-Дата, час:    2026-10-13 11:00
+/*
+===================================================================
+Версія:       1.1.6 (BanderiZZation! Hub — style.css Частина 1)
+Дата, час:    2026-10-14 11:00
 Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
 -------------------------------------------------------------------
 Еволюція змін:
- Зміни 1.0.1 - 1.1.3:
-  [Архів оновлень тла, карток, неону, маски, підсторінок, кнопок-карток]
- Зміни 1.1.4 відносно 1.1.3:
-  1. Помаранчевий текст підсторінок, приклеєна «До хабу», плавність 1.2 с,
-     неон кнопки версії, пульсуюче серце 55 уд/хв.
- Зміни 1.1.5 відносно 1.1.4 (Поточна версія):
-  1. Сітка кнопок хабу 2×2 (на вузьких екранах — одна колонка).
-  2. Клас .hub-item--soon («ще не запущено»): червоний неон кнопки та
-     інфо-панелі при наведенні. Щоб запустити — прибрати клас в index.html.
-  3. Ширша інфо-панель під довші заголовки.
+ Зміни 1.0.1 - 1.1.4:
+  [Архів оновлень тла, карток, неону, маски, підсторінок, серця, плавності]
+ Зміни 1.1.5 відносно 1.1.4:
+  1. Сітка кнопок 2×2, червоний неон для «ще не запущено».
+ Зміни 1.1.6 відносно 1.1.5 (Поточна версія):
+  1. Плавні переходи між сторінками (0.75 с): html.bz-pre + transition body.
+  2. Меню «Атмосфера» (.atmo-*): скляне вікно з блакитним неоном,
+     відкривається кліком, поява/зникнення 1.2 с.
+  3. Верхня панель на всіх сторінках: відступи підсторінок і кнопки «До хабу».
+  4. Вікно версії: клікабельна пошта (.neon-mail), невидимий «місток»
+     проти зникнення вікна, відкриття дотиком на телефонах.
+  5. Стрічка новин внизу сторінок (.news-*): розгортання 1.2 с, пауза при
+     наведенні; стилі кнопок-логотипів для підсторінок.
 ===================================================================
 */
-
-
 
 :root {
     --main-bg: #0b0f19; /* Глибокий темно-синій колір загального тла */
@@ -777,4 +779,204 @@ body.sub-page,
 .hub-item--soon .hub-popup-title {
     color: #f87171;
     text-shadow: 0 0 8px rgba(239, 68, 68, 0.7);
+}
+/* --- v1.1.6: ПЛАВНІ ПЕРЕХОДИ МІЖ СТОРІНКАМИ (0.75 с) --- */
+html { background: #0b0f19; } /* Темна основа, щоб не було білого спалаху */
+body { transition: opacity 0.75s ease-in-out; }
+html.bz-pre body { opacity: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+    body { transition: none; }
+    html.bz-pre body { opacity: 1; }
+}
+
+/* --- v1.1.6: ВЕРХНЯ ПАНЕЛЬ НА ПІДСТОРІНКАХ --- */
+body.sub-page { padding-top: 40px; }
+.sub-page .back-link { top: calc(40px + 0.9rem); }
+.sub-page .sub-wrap { padding-top: 5rem; }
+
+/* --- v1.1.6: МЕНЮ «АТМОСФЕРА» --- */
+.control-badge { cursor: pointer; user-select: none; }
+
+.atmo-zone { position: relative; display: inline-block; }
+
+.atmo-popup {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    width: 300px;
+    max-width: 92vw;
+    box-sizing: border-box;
+    padding: 1.2rem;
+    border-radius: 12px;
+    z-index: 99999;
+    color: #cbd5e1;
+    background: rgba(10, 14, 23, 0.85);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid rgba(59, 130, 246, 0.85); /* Блакитна неонова рамка */
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(59, 130, 246, 0.4);
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity var(--fade-time) ease-in-out, visibility var(--fade-time) ease-in-out;
+}
+.atmo-zone.is-open .atmo-popup {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.atmo-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.9rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #93c5fd;
+    text-shadow: 0 0 6px rgba(59, 130, 246, 0.6);
+}
+.atmo-row:last-child { margin-bottom: 0; }
+.atmo-row.atmo-col { flex-direction: column; align-items: stretch; gap: 0.4rem; }
+
+.atmo-popup input[type="checkbox"] { width: 18px; height: 18px; accent-color: #3b82f6; cursor: pointer; }
+.atmo-popup input[type="range"] { width: 100%; accent-color: #3b82f6; cursor: pointer; }
+.atmo-popup select {
+    width: 100%;
+    padding: 0.45rem 0.6rem;
+    border-radius: 8px;
+    border: 1px solid rgba(59, 130, 246, 0.5);
+    background: rgba(15, 23, 42, 0.8);
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 0.9rem;
+}
+.atmo-popup select:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 10px rgba(59, 130, 246, 0.6); }
+.atmo-popup select:disabled { opacity: 0.6; }
+
+/* --- v1.1.6: ВІКНО ВЕРСІЇ — КЛІКАБЕЛЬНА ПОШТА, МІСТОК, ДОТИК --- */
+.neon-mail { display: block; text-decoration: none; cursor: pointer; }
+.neon-mail:hover,
+.neon-mail:focus-visible {
+    color: #ff9a4d;
+    text-decoration: underline;
+    text-shadow: 0 0 8px rgba(255, 154, 77, 0.95), 0 0 18px rgba(234, 88, 12, 0.8);
+    outline: none;
+}
+
+/* Невидимий «місток» між бейджем і вікном: вікно не зникає, поки курсор іде до нього */
+.neon-version-popup::before {
+    content: "";
+    position: absolute;
+    top: -14px;
+    left: 0;
+    right: 0;
+    height: 14px;
+}
+
+/* Відкриття дотиком (пристрої без наведення) */
+.version-trigger-zone.is-open .neon-version-popup {
+    opacity: 1;
+    visibility: visible;
+}
+body.version-open .screen-overlay {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Кнопки-логотипи у вікні версії (потрібні й на підсторінках) */
+.logo-site-link-custom {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    border-radius: 12px;
+    text-decoration: none;
+    background: rgba(15, 23, 42, 0.3);
+    border: 1px solid rgba(234, 88, 12, 0.35);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s ease-in-out;
+}
+.logo-site-link-custom:hover {
+    background: rgba(22, 163, 74, 0.2);
+    border-color: #4ade80;
+    box-shadow: 0 0 30px rgba(74, 222, 128, 0.95), 0 0 60px rgba(34, 197, 94, 0.6), 0 0 100px rgba(34, 197, 94, 0.4);
+    transform: translateY(-4px);
+}
+
+/* --- v1.1.6: СТРІЧКА НОВИН ВНИЗУ СТОРІНОК --- */
+.news-ticker {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 40px;
+    box-sizing: border-box;
+    z-index: 80;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-top: 1px solid rgba(34, 197, 94, 0.5);
+    box-shadow: 0 -4px 20px rgba(34, 197, 94, 0.25);
+
+    /* Стан за замовчуванням: сховано внизу; розгортається знизу вгору за 1.2 с */
+    transform: translateY(100%);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: transform var(--fade-time) ease-in-out, opacity var(--fade-time) ease-in-out, visibility var(--fade-time) ease-in-out;
+}
+.news-ticker.is-visible {
+    transform: none;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.news-track {
+    display: inline-flex;
+    white-space: nowrap;
+    will-change: transform;
+    animation: bz-news-scroll 60s linear infinite;
+}
+.news-ticker:hover .news-track { animation-play-state: paused; } /* Пауза при наведенні */
+
+.news-group { display: inline-flex; }
+
+@keyframes bz-news-scroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+}
+
+.news-item {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 0.5rem;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+.news-item::after { content: "•"; margin-left: 1.5rem; color: #22c55e; }
+a.news-item:hover { color: #4ade80; text-shadow: 0 0 8px rgba(74, 222, 128, 0.8); }
+
+.news-src {
+    margin-right: 0.5rem;
+    font-weight: 800;
+    color: #22c55e;
+    text-shadow: 0 0 6px rgba(34, 197, 94, 0.7);
+}
+
+/* Відступ знизу, щоб стрічка не закривала футер */
+body.news-on { padding-bottom: 40px; }
+
+@media (prefers-reduced-motion: reduce) {
+    .news-track { animation: none; }
+    .news-ticker { overflow-x: auto; }
 }
