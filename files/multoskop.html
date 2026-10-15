@@ -1,0 +1,90 @@
+<!--
+===================================================================
+Версія:       1.0.2 (BanderiZZation! Hub — multoskop.html)
+Дата, час:    2026-10-16 01:40
+Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
+-------------------------------------------------------------------
+Еволюція змін:
+ Зміни 1.0.0:
+  1. Нова сторінка-заглушка «Мультфільмоскоп». Фон: sky/skymult.png.
+ Зміни 1.0.1 відносно 1.0.0:
+  1. Заглушку замінено на повноцінну сторінку: сітка мультфільмів із колекції
+     cartoons (Firestore), неон-плеєр, лічильники переглядів і лайків.
+  2. Гілка коментарів під кожним мультфільмом: підколекція cartoons/{id}/comments.
+  3. Логіка та стилі — спільні з Кіноскопом (player.js / player.css).
+ Зміни 1.0.2 відносно 1.0.1 (Поточна версія):
+  1. Сторінка перейменована: «Мультфільмоскоп» → «Мультоскоп» (назва, заголовок, підпис).
+  2. player.js підключено як звичайний скрипт (працює й при відкритті з диска file://).
+===================================================================
+-->
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мультоскоп — BanderiZZation!</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="player.css">
+    <script>document.documentElement.className += ' bz-pre';</script>
+    <link rel="icon" type="image/png" sizes="144x144" href="favicon.png">
+</head>
+<body class="sub-page page-multoskop page-player" data-collection="cartoons" data-label="Мультоскоп" data-empty="Схоже, мультфільмів у базі ще немає...">
+
+    <div class="sub-wrap">
+        <a class="back-link" href="index.html">← До хабу</a>
+
+        <section class="glass-panel">
+            <h2 class="sub-title">🎞️ Мультоскоп</h2>
+            <p class="sub-text">Українські мультфільми які ви ніколи не бачили!</p>
+            <div id="movies-container" class="movies-grid">
+                <p class="sub-text" style="color: #00f2fe;">Завантаження мультфільмів...</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- Вікно плеєра з коментарями (логіка та стилі — player.js / player.css) -->
+    <div id="videoModal" class="player-modal" aria-hidden="true">
+        <div class="player-box">
+            <button class="player-close" id="closePlayerBtn" aria-label="Закрити">×</button>
+            <div class="video-wrapper">
+                <iframe id="playerIframe" src="about:blank" allow="autoplay; fullscreen" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>
+            </div>
+
+            <div class="info-row">
+                <span class="meta-item">👁️ <span id="modalViews">0</span></span>
+                <button class="like-btn" id="modalLikeBtn">🔥 <span id="modalLikes">0</span></button>
+                <span style="color: rgba(255,255,255,0.4)">•</span>
+                <h3 class="modal-movie-title" id="modalTitle">Назва</h3>
+            </div>
+
+            <p class="player-desc" id="modalDescription"></p>
+
+            <!-- Гілка коментарів: лишається під фільмом (підколекція в Firestore) -->
+            <div class="chat-section">
+                <h3 class="chat-title">Коментарі до мультфільму</h3>
+
+                <div class="form-group">
+                    <label for="chatEmail">Пошта</label>
+                    <input type="email" id="chatEmail" class="chat-input" placeholder="name@gmail.com" maxlength="254" autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label for="chatText">Коментар</label>
+                    <textarea id="chatText" class="chat-textarea" rows="3" maxlength="500" placeholder="Ваш коментар (до 500 символів)"></textarea>
+                    <div class="chat-counter" id="charCounter">0 / 500</div>
+                </div>
+
+                <!-- Поле-пастка від ботів: людина його не бачить -->
+                <input id="chatWebsite" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp-field">
+
+                <button class="submit-chat-btn" id="sendCommentBtn" type="button">Надіслати</button>
+                <div class="chat-status" id="chatStatus" role="status" aria-live="polite"></div>
+
+                <div class="chat-list" id="modalCommentsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="common.js"></script>
+    <script src="player.js"></script>
+</body>
+</html>

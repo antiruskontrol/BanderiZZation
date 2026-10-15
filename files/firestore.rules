@@ -1,0 +1,80 @@
+// ===================================================================
+// Версія:       1.0.0 (BanderiZZation! — правила Firestore)
+// Дата, час:    2026-10-15 18:10
+// Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
+// -------------------------------------------------------------------
+// Еволюція змін:
+//  Зміни 1.0.0 (Поточна версія):
+//   1. comments / comment_emails — як і раніше (сторінка коментарів).
+//   2. movies та cartoons: читати всім; клієнт може лише збільшити
+//      views та/або likes рівно на 1; створювати/видаляти документи
+//      можна лише з консолі Firebase.
+//   3. Підколекції movies/{id}/comments та cartoons/{id}/comments:
+//      читати всім, створювати за тими ж правилами валідації.
+//
+// ПЕРЕД ПУБЛІКАЦІЄЮ порівняйте з поточними правилами в консолі: якщо там
+// є інші колекції, перенесіть їх у цей файл, бо Publish замінює все.
+// ===================================================================
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function validComment() {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['maskedEmail', 'text', 'createdAt'])
+        && d.maskedEmail is string && d.maskedEmail.size() <= 100
+        && d.text is string && d.text.size() > 0 && d.text.size() <= 500
+        && d.createdAt == request.time;
+    }
+
+    function counterOnly() {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      return changed.hasOnly(['views', 'likes'])
+        && (!('views' in changed) || request.resource.data.views == resource.data.get('views', 0) + 1)
+        && (!('likes' in changed) || request.resource.data.likes == resource.data.get('likes', 0) + 1);
+    }
+
+    // --- Загальна сторінка коментарів ---
+    match /comments/{id} {
+      allow read: if true;
+      allow create: if validComment();
+      allow update, delete: if false;
+    }
+
+    // --- Повні пошти: лише запис, читання заборонене ---
+    match /comment_emails/{id} {
+      allow create: if request.resource.data.keys().hasOnly(['email', 'createdAt'])
+        && request.resource.data.email is string
+        && request.resource.data.email.size() <= 254
+        && request.resource.data.email.matches('^[^@ ]+@[^@ ]+\\.[^@ ]+$')
+        && request.resource.data.createdAt == request.time;
+      allow read, update, delete: if false;
+    }
+
+    // --- Кіноскоп ---
+    match /movies/{movieId} {
+      allow read: if true;
+      allow update: if counterOnly();
+      allow create, delete: if false;
+
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if validComment();
+        allow update, delete: if false;
+      }
+    }
+
+    // --- Мультфільмоскоп ---
+    match /cartoons/{cartoonId} {
+      allow read: if true;
+      allow update: if counterOnly();
+      allow create, delete: if false;
+
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if validComment();
+        allow update, delete: if false;
+      }
+    }
+  }
+}
