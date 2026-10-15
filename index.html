@@ -1,7 +1,7 @@
 <!--
 ===================================================================
-Версія:       1.1.9 (BanderiZZation! Hub — index.html)
-Дата, час:    2026-10-13 12:00
+Версія:       1.1.11 (BanderiZZation! Hub — index.html)
+Дата, час:    2026-10-15 11:00
 Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
 -------------------------------------------------------------------
 Еволюція змін:
@@ -35,7 +35,7 @@
      червоний неон при наведенні (замість зеленого). Для запуску — прибрати
      цей клас, кнопка стане зеленою.
   3. Оновлено версію/дату/час у верхньому барі та вікні версії.
- Зміни 1.1.9 відносно 1.1.8 (Поточна версія):
+ Зміни 1.1.9 відносно 1.1.8:
   1. Плавні переходи між сторінками: затухання 0.75 с і проявлення 0.75 с (common.js).
   2. Верхня панель прибрана зі статичної розмітки: тепер її вставляє common.js на всіх
      сторінках (версія/дата/пошта — в одному місці, у константі SITE).
@@ -43,6 +43,17 @@
   4. Меню «Атмосфера» (звук, композиції з папки sound, гучність, стрічка новин) — atmosphere.js;
      стрічка новин унизу сторінки — news.js.
   5. Вікно версії: клікабельна пошта (mailto).
+ Зміни 1.1.10 відносно 1.1.9:
+  1. Меню «Атмосфера» відкривається при наведенні; клік по бейджу вмикає/вимикає звук
+     (atmosphere.js 1.0.1).
+  2. Вікно версії: опис сайтів при наведенні на логотипи (common.js 1.0.1).
+  3. Версія сайту (бейдж і вікно) береться з common.js — тепер v1.1.10.
+ Зміни 1.1.11 відносно 1.1.10 (Поточна версія):
+  1. Нова кнопка «Мультфільмоскоп» (multoskop.html) між «Кіноскоп» та «Ігроленд»:
+     другий ряд — три кнопки, перший ряд («Коментарі», «Донати») по центру.
+  2. Опис при наведенні: «Кіноскоп» — «Українські фільми, яких ви ніколи не бачили!»,
+     «Мультфільмоскоп» — «Українські мультфільми які ви ніколи не бачили!».
+  3. Кнопки «ще не запущено» (hub-item--soon) світяться червоним.
 ===================================================================
 -->
 <!DOCTYPE html>
@@ -98,59 +109,77 @@
 
     <!-- v1.1.6: кнопки-картки «Коментарі» та «Донати» з інфо-панелями при наведенні -->
     <main class="hub-menu">
-        <div class="hub-item">
-            <a class="hub-card" href="comments.html">
-                <span class="hub-card-icon">💬</span>
-                <span class="hub-card-title">Коментарі</span>
-            </a>
-            <div class="hub-popup">
-                <div class="hub-popup-title">Залишити відгук</div>
-                <ul>
-                    <li>Вкажіть пошту й напишіть коментар</li>
-                    <li>Усі коментарі в одному списку</li>
-                    <li>Пошта в списку маскується (ma***@gmail.com)</li>
-                </ul>
+        <!-- Ряд 1: діючі сторінки -->
+        <div class="hub-row">
+            <div class="hub-item">
+                <a class="hub-card" href="comments.html">
+                    <span class="hub-card-icon">💬</span>
+                    <span class="hub-card-title">Коментарі</span>
+                </a>
+                <div class="hub-popup">
+                    <div class="hub-popup-title">Залишити відгук</div>
+                    <ul>
+                        <li>Вкажіть пошту й напишіть коментар</li>
+                        <li>Усі коментарі в одному списку</li>
+                        <li>Пошта в списку маскується (ma***@gmail.com)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="hub-item">
+                <a class="hub-card" href="donate.html">
+                    <span class="hub-card-icon"><span class="hub-heart">💙</span></span>
+                    <span class="hub-card-title">Донати</span>
+                </a>
+                <div class="hub-popup">
+                    <div class="hub-popup-title">Підтримати проєкт</div>
+                    <ul>
+                        <li>Сторінка ще налаштовується</li>
+                        <li>Реквізити з'являться незабаром</li>
+                    </ul>
+                </div>
             </div>
         </div>
 
-        <div class="hub-item">
-            <a class="hub-card" href="donate.html">
-                <span class="hub-card-icon"><span class="hub-heart">💙</span></span>
-                <span class="hub-card-title">Донати</span>
-            </a>
-            <div class="hub-popup">
-                <div class="hub-popup-title">Підтримати проєкт</div>
-                <ul>
-                    <li>Сторінка ще налаштовується</li>
-                    <li>Реквізити з'являться незабаром</li>
-                </ul>
+        <!-- Ряд 2: «ще не запущено» → червоний неон; щоб запустити, прибрати hub-item--soon -->
+        <div class="hub-row">
+            <div class="hub-item hub-item--soon">
+                <a class="hub-card" href="kinoskop.html">
+                    <span class="hub-card-icon">🎬</span>
+                    <span class="hub-card-title">Кіноскоп</span>
+                </a>
+                <div class="hub-popup">
+                    <div class="hub-popup-title">Українські фільми, яких ви ніколи не бачили!</div>
+                    <ul>
+                        <li>Сторінка наповнюється</li>
+                    </ul>
+                </div>
             </div>
-        </div>
 
-        <!-- v1.1.8: «ще не запущено» → червоний неон; щоб запустити, прибрати hub-item--soon -->
-        <div class="hub-item hub-item--soon">
-            <a class="hub-card" href="kinoskop.html">
-                <span class="hub-card-icon">🎬</span>
-                <span class="hub-card-title">Кіноскоп</span>
-            </a>
-            <div class="hub-popup">
-                <div class="hub-popup-title">Українські фільми та мультфільми, яких ви ніколи не бачили</div>
-                <ul>
-                    <li>Сторінка наповнюється</li>
-                </ul>
+            <div class="hub-item hub-item--soon">
+                <a class="hub-card" href="multoskop.html">
+                    <span class="hub-card-icon">🎞️</span>
+                    <span class="hub-card-title">Мультфільмоскоп</span>
+                </a>
+                <div class="hub-popup">
+                    <div class="hub-popup-title">Українські мультфільми які ви ніколи не бачили!</div>
+                    <ul>
+                        <li>Сторінка наповнюється</li>
+                    </ul>
+                </div>
             </div>
-        </div>
 
-        <div class="hub-item hub-item--soon">
-            <a class="hub-card" href="igroland.html">
-                <span class="hub-card-icon">🎮</span>
-                <span class="hub-card-title">Ігроленд</span>
-            </a>
-            <div class="hub-popup">
-                <div class="hub-popup-title">Українські ремейки класичних ігор, в які варто пограти</div>
-                <ul>
-                    <li>Сторінка наповнюється</li>
-                </ul>
+            <div class="hub-item hub-item--soon">
+                <a class="hub-card" href="igroland.html">
+                    <span class="hub-card-icon">🎮</span>
+                    <span class="hub-card-title">Ігроленд</span>
+                </a>
+                <div class="hub-popup">
+                    <div class="hub-popup-title">Українські ремейки класичних ігор, в які варто пограти</div>
+                    <ul>
+                        <li>Сторінка наповнюється</li>
+                    </ul>
+                </div>
             </div>
         </div>
     </main>

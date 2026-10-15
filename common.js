@@ -1,11 +1,11 @@
 /*
 ===================================================================
-Версія:       1.0.0 (BanderiZZation! Hub — common.js)
-Дата, час:    2026-10-13 12:00
+Версія:       1.0.2 (BanderiZZation! Hub — common.js)
+Дата, час:    2026-10-15 11:00
 Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
 -------------------------------------------------------------------
 Еволюція змін:
- Зміни 1.0.0 (Поточна версія):
+ Зміни 1.0.0:
   1. Верхня панель (час, Київ, «Атмосфера», версія) тепер вставляється
      цим скриптом на ВСІХ сторінках; версія/дата/пошта — в одному місці (SITE).
   2. Годинник реального часу (замінив годинник зі script.js).
@@ -15,6 +15,12 @@
      вікно відкривається дотиком.
   5. Підключення atmosphere.js та news.js.
   6. Дебаг-принти [BZ-BAR] / [BZ-NAV] з описом маркера спрацювання.
+ Зміни 1.0.1 відносно 1.0.0:
+  1. Вікно версії: при наведенні на логотипи сайтів (Weather in Ukraine, UAFilter)
+     з'являється панель з їх описом (поява/зникнення 1.2 с; на телефонах не показується).
+  2. Версія сайту в SITE оновлена до 1.1.10.
+ Зміни 1.0.2 відносно 1.0.1 (Поточна версія):
+  1. Версія сайту в SITE оновлена до 1.1.11 (кнопка «Мультфільмоскоп», фони сторінок).
 ===================================================================
 */
 
@@ -23,9 +29,9 @@
 
     // ===== ЄДИНЕ ДЖЕРЕЛО ВЕРСІЇ САЙТУ (змінювати тільки тут) =====
     const SITE = {
-        version: '1.1.9',
-        date: '2026-10-13',
-        time: '12:00:00',
+        version: '1.1.11',
+        date: '2026-10-15',
+        time: '11:00:00',
         email: 'antiruskontrol@ukr.net'
     };
 
@@ -75,12 +81,32 @@
                     <div class="neon-location-tag">KYIV UKRAINE 2026</div>
 
                     <div class="logo-sites-grid" style="display: flex; gap: 1.2rem; margin-top: 1rem;">
-                        <a href="https://antiruskontrol.github.io/WeatherInUkraine/" target="_blank" rel="noopener" class="logo-site-link-custom" title="WeatherInUkraine">
-                            <img src="weather-logo.png" alt="Weather" style="width: 64px; height: 64px; object-fit: contain; border-radius: 6px;">
-                        </a>
-                        <a href="https://antiruskontrol.github.io/antirus-control/" target="_blank" rel="noopener" class="logo-site-link-custom" title="UAFilter">
-                            <img src="antirus-logo.png" alt="UAFilter" style="width: 64px; height: 64px; object-fit: contain; border-radius: 6px;">
-                        </a>
+                        <div class="logo-item">
+                            <a href="https://antiruskontrol.github.io/WeatherInUkraine/" target="_blank" rel="noopener" class="logo-site-link-custom" title="WeatherInUkraine">
+                                <img src="weather-logo.png" alt="Weather" style="width: 64px; height: 64px; object-fit: contain; border-radius: 6px;">
+                            </a>
+                            <div class="logo-popup" role="tooltip">
+                                <div class="logo-popup-title">Weather in Ukraine</div>
+                                <div class="logo-popup-sub">Погода по всій Україні</div>
+                                <ul>
+                                    <li>Порівняння погоди за роками 2018–2026</li>
+                                    <li>Усі міста України у випадаючому меню</li>
+                                    <li>Живий віджет: хмари, дощ, блискавки, сонце, місяць із фазами</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="logo-item">
+                            <a href="https://antiruskontrol.github.io/antirus-control/" target="_blank" rel="noopener" class="logo-site-link-custom" title="UAFilter">
+                                <img src="antirus-logo.png" alt="UAFilter" style="width: 64px; height: 64px; object-fit: contain; border-radius: 6px;">
+                            </a>
+                            <div class="logo-popup" role="tooltip">
+                                <div class="logo-popup-title">UAFilter</div>
+                                <div class="logo-popup-sub">Розширення для браузера</div>
+                                <ul>
+                                    <li>Автоматично розмиває російський текст на сайтах та пропускає YouTube Shorts</li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
