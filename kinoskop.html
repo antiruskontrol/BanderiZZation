@@ -236,11 +236,22 @@
             });
 
             // Налаштовуємо обробник для кліку по кнопці лайка
-            document.getElementById('modalLikeBtn').onclick = async () => {
+                        // Налаштовуємо обробник для кліку по кнопці лайка з блокуванням повторних натискань
+            const likeBtn = document.getElementById('modalLikeBtn');
+            likeBtn.disabled = false; // Робимо кнопку активною при відкритті нового фільму
+            likeBtn.style.opacity = "1";
+            likeBtn.style.cursor = "pointer";
+
+            likeBtn.onclick = async () => {
+                likeBtn.disabled = true; // Миттєво блокуємо кнопку після першого ж кліку
+                likeBtn.style.opacity = "0.5"; // Візуально приглушуємо її неоновий колір
+                likeBtn.style.cursor = "not-allowed"; // Міняємо курсор миші
+
                 await updateDoc(movieRef, {
                     likes: increment(1)
                 });
             };
+
         }
 
         // Функція закриття плеєра та зупинки завантаження відеофайна (експортуємо у глобальну область видимості)
