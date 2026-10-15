@@ -1,19 +1,25 @@
 /*
 ===================================================================
-Версія:       1.1.8 (BanderiZZation! Hub — style.css Частина 1)
-Дата, час:    2026-10-15 11:00
+Версія:       1.1.9 (BanderiZZation! Hub — style.css Частина 1)
+Дата, час:    2026-10-16 02:20
 Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
 -------------------------------------------------------------------
 Еволюція змін:
  Зміни 1.0.1 - 1.1.6:
   [Архів оновлень тла, карток, неону, переходів, меню Атмосфера, новин]
  Зміни 1.1.7 відносно 1.1.6:
-  1. Меню «Атмосфера» на наведенні; описи сайтів при наведенні на логотипи.
- Зміни 1.1.8 відносно 1.1.7 (Поточна версія):
-  1. Кнопки хабу у двох рядах (.hub-row): 2 кнопки зверху, 3 знизу
-     (Кіноскоп, Мультфільмоскоп, Ігроленд); на вузьких екранах — колонка.
+  1. Меню «Атмосфера» на наведенні (місток, закріплення, Esc); описи сайтів
+     при наведенні на логотипи у вікні версії (.logo-item, .logo-popup).
+ Зміни 1.1.8 відносно 1.1.7:
+  1. Кнопки хабу у двох рядах (.hub-row): 2 зверху, 3 знизу
+     (Кіноскоп, Мультоскоп, Ігроленд); на вузьких екранах — колонка.
   2. Фони сторінок: .page-kinoskop (sky/backfilm.png) та .page-multoskop
-     (sky/skymult.png) — фіксований фон на весь екран з легким затемненням.
+     (sky/skymult.png) — фіксований фон з легким затемненням.
+ Зміни 1.1.9 відносно 1.1.8 (Поточна версія):
+  1. ЦІЛИЙ ФАЙЛ: блок v1.1.7 (описи логотипів, наведення на «Атмосферу»),
+     який був пропущений, додано в кінець.
+  2. Вікна версії та «Атмосфера»: майже непрозоре тло (94%), щоб кнопки
+     сторінки не просвічували крізь текст.
 ===================================================================
 */
 
@@ -996,7 +1002,7 @@ body.news-on { padding-bottom: 40px; }
 .hub-item { max-width: 100%; }
 .hub-card { max-width: 100%; }
 
-/* --- v1.1.8: ФОНИ СТОРІНОК «КІНОСКОП» І «МУЛЬТФІЛЬМОСКОП» --- */
+/* --- v1.1.8: ФОНИ СТОРІНОК «КІНОСКОП» І «МУЛЬТОСКОП» --- */
 body.page-kinoskop::before,
 body.page-multoskop::before {
     position: fixed;
@@ -1014,3 +1020,93 @@ body.page-multoskop::before {
                 url('sky/skymult.png') no-repeat center center;
     background-size: cover;
 }
+
+/* --- v1.1.7: МЕНЮ «АТМОСФЕРА» — ВІДКРИТТЯ ПРИ НАВЕДЕННІ --- */
+
+/* Невидимий «місток» між бейджем і вікном: меню не зникає, поки курсор іде до нього */
+.atmo-popup::before {
+    content: "";
+    position: absolute;
+    top: -14px;
+    left: 0;
+    right: 0;
+    height: 14px;
+}
+
+/* Наведення мишкою (лише пристрої з наведенням) */
+@media (hover: hover) {
+    .atmo-zone:hover .atmo-popup {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+    }
+}
+
+/* Фокус з клавіатури (Tab) та закріплення, поки відкрито список композицій */
+.atmo-zone:has(:focus-visible) .atmo-popup,
+.atmo-zone.is-pinned .atmo-popup {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+/* Esc: приховати меню, доки курсор не покине зону */
+html .atmo-zone.is-suppressed .atmo-popup {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+/* --- v1.1.7: ОПИС САЙТІВ ПРИ НАВЕДЕННІ НА ЛОГОТИПИ У ВІКНІ ВЕРСІЇ --- */
+.logo-item {
+    flex: 1;
+    position: relative;
+    display: flex;
+}
+
+.logo-popup {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    width: 280px;
+    max-width: 85vw;
+    box-sizing: border-box;
+    padding: 1rem 1.1rem;
+    border-radius: 14px;
+    z-index: 5;
+    background: rgba(10, 14, 23, 0.95);
+    border: 1px solid rgba(34, 197, 94, 0.6); /* Зелена неонова рамка */
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(34, 197, 94, 0.35);
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity var(--fade-time) ease-in-out, visibility var(--fade-time) ease-in-out;
+}
+/* Правий логотип: панель вирівняна по правому краю, щоб не виходила за екран */
+.logo-item:last-child .logo-popup { left: auto; right: 0; }
+
+.logo-popup-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #22c55e;
+    text-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+}
+.logo-popup-sub { margin: 0.2rem 0 0.6rem; font-size: 0.85rem; color: #94a3b8; }
+.logo-popup ul { margin: 0; padding-left: 1.1rem; }
+.logo-popup li { margin-bottom: 0.35rem; font-size: 0.85rem; line-height: 1.4; color: #e2e8f0; }
+.logo-popup li:last-child { margin-bottom: 0; }
+
+/* Показуємо лише на пристроях з наведенням */
+@media (hover: hover) {
+    .logo-item:hover .logo-popup {
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+/* --- v1.1.9: НЕПРОЗОРІШЕ ТЛО ВІКОН ВЕРСІЇ ТА «АТМОСФЕРА» ---
+   Вікна лежать усередині верхньої панелі, тому розмиття (backdrop-filter) не бачить
+   сторінку під ними. Майже непрозоре тло не дає кнопкам просвічувати крізь текст. */
+.neon-version-popup { background: rgba(10, 14, 23, 0.94); }
+.atmo-popup { background: rgba(10, 14, 23, 0.94); }
