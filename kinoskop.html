@@ -175,6 +175,7 @@ const db = getFirestore(app);
 const container = document.getElementById('movies-container');
 const commentsList = document.getElementById('modalCommentsList');
 let activeMovieId = null;
+let activeMovieTitle = ""; 
 
         // Функція маскування пошти (перетворює name@gmail.com -> na***@gmail.com)
         function maskEmail(email) {
