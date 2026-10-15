@@ -167,12 +167,8 @@
 
 
 const app = initializeApp(firebaseConfig);
-let db;
-try {
-db = getFirestore(app);
-} catch (e) {
-db = getFirestore();
-}
+const db = getFirestore(app);
+
 
 const container = document.getElementById('movies-container');
 const commentsList = document.getElementById('modalCommentsList');
