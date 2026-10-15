@@ -1,22 +1,15 @@
 <!--
 ===================================================================
-Версія:       1.0.3 (BanderiZZation! Hub — kinoskop.html)
-Дата, час:    2026-10-15 12:30
+Версія:       1.0.4 (BanderiZZation! Hub — kinoskop.html)
+Дата, час:    2026-10-15 14:40
 Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
 -------------------------------------------------------------------
 Еволюція змін:
- Зміни 1.0.0:
-  1. Нова сторінка-заглушка «Кіноскоп»...
- Зміни 1.0.1 відносно 1.0.0:
-  1. Підключено common.js...
- Зміни 1.0.2 відносно 1.0.1:
-  1. Фон сторінки: sky/backfilm.png, оновлено опис сторінки.
- Зміни 1.0.3 відносно 1.0.2 (Поточна версія):
-  1. Видалено заглушку «Сторінка наповнюється».
-  2. Додано контейнер #movies-container для динамічної сітки фільмів.
-  3. Інтегровано Neon Pop-up Player (модальне вікно відеоплеєра).
-  4. Підключено Firebase SDK та логіку взаємодії в реальному часі 
-     (Рядок: [Перегляди] • [Лайки] • Назва фільму).
+ Зміни 1.0.3: Інтегровано повноекранний Neon Pop-up Player.
+ Зміни 1.0.4 відносно 1.0.3 (Поточна версія):
+  1. Додано секцію кіберпанк-коментарів під плеєр у стилі comments.html.
+  2. Реалізовано форму відправки відгуку (Пошта + Текст до 500 символів).
+  3. Налаштовано інтелектуальний фільтр відображення коментарів саме для поточного фільму.
 ===================================================================
 -->
 <!DOCTYPE html>
@@ -29,92 +22,69 @@
     <script>document.documentElement.className += ' bz-pre';</script>
     <link rel="icon" type="image/png" sizes="144x144" href="favicon.png">
     
-    <!-- Стилі для кіберпанк-відеоплеєра та карток (можна перенести в style.css v1.1.9) -->
     <style>
         .movies-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
-            margin-top: 30px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px; margin-top: 30px;
         }
         .movie-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(0, 242, 254, 0.2);
-            border-radius: 12px;
-            padding: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(0, 242, 254, 0.2);
+            border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.3s ease;
         }
         .movie-card:hover {
-            box-shadow: 0 0 15px rgba(0, 242, 254, 0.6);
-            border-color: rgba(0, 242, 254, 1);
-            transform: translateY(-3px);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.6); border-color: rgba(0, 242, 254, 1); transform: translateY(-3px);
         }
-        .movie-title-card {
-            font-size: 1.2rem;
-            color: #fff;
-            margin: 10px 0;
-            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
-        }
-        /* Модальне вікно плеєра */
+        .movie-title-card { font-size: 1.2rem; color: #fff; margin: 10px 0; text-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+        
+        /* Модальне вікно з прокруткою під чат */
         .neon-modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(10, 5, 20, 0.85);
-            backdrop-filter: blur(8px);
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 5, 20, 0.85); backdrop-filter: blur(8px); z-index: 9999;
+            justify-content: center; align-items: center;
         }
         .modal-content {
-            background: #0d0614;
-            border: 2px solid #ff007f;
-            box-shadow: 0 0 25px #ff007f;
-            border-radius: 16px;
-            width: 90%; max-width: 800px;
-            padding: 20px;
-            position: relative;
+            background: #0d0614; border: 2px solid #ff007f; box-shadow: 0 0 25px #ff007f;
+            border-radius: 16px; width: 95%; max-width: 800px; max-height: 90vh;
+            padding: 25px; position: relative; overflow-y: auto;
         }
         .close-btn {
-            position: absolute;
-            top: -15px; right: -15px;
-            background: #ff007f; color: #fff;
-            border: none; border-radius: 50%;
-            width: 35px; height: 35px;
-            font-size: 1.2rem; cursor: pointer;
-            box-shadow: 0 0 10px #ff007f;
-            transition: all 0.2s;
+            position: absolute; top: 10px; right: 10px; background: #ff007f; color: #fff;
+            border: none; border-radius: 50%; width: 35px; height: 35px; font-size: 1.2rem;
+            cursor: pointer; box-shadow: 0 0 10px #ff007f; z-index: 10; transition: all 0.2s;
         }
-        .close-btn:hover {
-            background: #fff; color: #ff007f;
-            box-shadow: 0 0 15px #fff;
-        }
-        .video-wrapper {
-            position: relative; padding-bottom: 56.25%; height: 0;
-            border-radius: 8px; overflow: hidden;
-            background: #000;
-        }
-        .video-wrapper iframe {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;
-        }
-        .info-row {
-            display: flex; align-items: center; gap: 15px;
-            margin: 15px 0 10px 0; font-family: monospace; font-size: 1rem;
-        }
+        .close-btn:hover { background: #fff; color: #ff007f; box-shadow: 0 0 15px #fff; }
+        .video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; border-radius: 8px; overflow: hidden; background: #000; }
+        .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+        .info-row { display: flex; align-items: center; gap: 15px; margin: 15px 0 10px 0; font-family: monospace; font-size: 1rem; }
         .meta-item { color: #00f2fe; text-shadow: 0 0 5px rgba(0, 242, 254, 0.5); }
         .like-btn {
-            background: transparent; border: 1px solid #ff007f;
-            color: #ff007f; border-radius: 6px; padding: 3px 8px;
-            cursor: pointer; font-family: monospace; transition: all 0.2s;
+            background: transparent; border: 1px solid #ff007f; color: #ff007f;
+            border-radius: 6px; padding: 3px 8px; cursor: pointer; font-family: monospace; transition: all 0.2s;
         }
-        .like-btn:hover {
-            background: #ff007f; color: #fff; box-shadow: 0 0 10px #ff007f;
+        .like-btn:hover { background: #ff007f; color: #fff; box-shadow: 0 0 10px #ff007f; }
+        .modal-movie-title { color: #fff; font-size: 1.4rem; margin: 0; text-shadow: 0 0 8px rgba(255, 255, 255, 0.8); }
+        
+        /* СТИЛІ КІБЕРПАНК-ЧАТУ (копія стилю твоєї comments.html) */
+        .chat-section { margin-top: 30px; border-top: 1px solid rgba(255, 0, 127, 0.3); padding-top: 20px; }
+        .chat-title { color: #ffd700; font-size: 1.3rem; margin-bottom: 15px; text-shadow: 0 0 5px rgba(255, 215, 0, 0.4); text-align: left;}
+        .form-group { margin-bottom: 15px; text-align: left; }
+        .form-group label { display: block; color: #fff; font-size: 0.9rem; margin-bottom: 5px; font-family: monospace; }
+        .chat-input, .chat-textarea {
+            width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(0, 242, 254, 0.3);
+            border-radius: 8px; padding: 12px; color: #fff; font-size: 0.95rem; box-sizing: border-box;
+            transition: all 0.3s;
         }
-        .modal-movie-title {
-            color: #fff; font-size: 1.4rem; margin: 0;
-            text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+        .chat-input:focus, .chat-textarea:focus { border-color: #00f2fe; box-shadow: 0 0 10px rgba(0, 242, 254, 0.4); outline: none; }
+        .submit-chat-btn {
+            background: rgba(255, 0, 127, 0.2); border: 1px solid #ff007f; color: #fff;
+            padding: 10px 25px; border-radius: 8px; cursor: pointer; font-weight: bold;
+            box-shadow: 0 0 10px rgba(255, 0, 127, 0.3); transition: all 0.3s;
         }
+        .submit-chat-btn:hover { background: #ff007f; box-shadow: 0 0 15px #ff007f; }
+        .comments-list { margin-top: 20px; max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+        .comment-item { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 12px; text-align: left; }
+        .comment-meta { display: flex; justify-content: space-between; font-size: 0.8rem; color: #00f2fe; font-family: monospace; margin-bottom: 6px; }
+        .comment-text { color: #ddd; font-size: 0.95rem; margin: 0; line-height: 1.4; }
     </style>
 </head>
 <body class="sub-page page-kinoskop">
@@ -124,16 +94,14 @@
 
         <section class="glass-panel">
             <h2 class="sub-title">🎬 Кіноскоп</h2>
-            <p class="sub-text">Українські фильм, яких ви ніколи не бачили!</p>
-            
-            <!-- Динамічна сітка для фільмів із Firebase -->
+            <p class="sub-text">Українські фільми, яких ви ніколи не бачили!</p>
             <div id="movies-container" class="movies-grid">
                 <p class="sub-text" style="color: #00f2fe;">Завантаження кінескопа...</p>
             </div>
         </section>
     </div>
 
-    <!-- Neon Pop-up Player (Модальне вікно) -->
+    <!-- Покращене модальне вікно з чатом -->
     <div id="videoModal" class="neon-modal">
         <div class="modal-content">
             <button class="close-btn" onclick="closePlayer()">×</button>
@@ -141,7 +109,6 @@
                 <iframe id="playerIframe" src="about:blank" allow="autoplay; fullscreen" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>
             </div>
             
-            <!-- Затверджений інформаційний рядок: Перегляди • Лайки • Назва -->
             <div class="info-row">
                 <span class="meta-item">👁️ <span id="modalViews">0</span></span>
                 <button class="like-btn" id="modalLikeBtn">🔥 <span id="modalLikes">0</span></button>
@@ -149,40 +116,81 @@
                 <h3 class="modal-movie-title" id="modalTitle">Назва фільму</h3>
             </div>
             
-            <p class="sub-text" id="modalDescription" style="font-size: 0.95rem; margin-top: 10px; text-align: left;"></p>
+            <p class="sub-text" id="modalDescription" style="font-size: 0.95rem; margin-top: 10px; text-align: left; margin-bottom:20px;"></p>
+            
+            <!-- СЕКЦІЯ ЧАТУ -->
+            <div class="chat-section">
+                <h3 class="chat-title">Коментарі до фільму</h3>
+                
+                <div class="form-group">
+                    <label>Пошта</label>
+                    <input type="email" id="chatEmail" class="chat-input" placeholder="name@gmail.com">
+                </div>
+                <div class="form-group">
+                    <label>Коментар</label>
+                    <textarea id="chatText" class="chat-textarea" rows="3" placeholder="Ваш коментар (до 500 символів)"></textarea>
+                    <div style="text-align: right; font-size: 0.8rem; color: rgba(255,255,255,0.4); margin-top: 4px;" id="charCounter">0 / 500</div>
+                </div>
+                <div style="text-align: left;">
+                    <button class="submit-chat-btn" id="sendCommentBtn">Надіслати</button>
+                </div>
+
+                <!-- Стрічка відгуків -->
+                <div class="comments-list" id="modalCommentsList">
+                    <!-- Сюди JS підтягне коментарі -->
+                </div>
+            </div>
         </div>
     </div>
 
     <script src="common.js"></script>
-    <!-- Підключення модульного SDK Firebase та інтерактивна логіка -->
-        <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    <!-- Підключення Firebase SDK та логіка інтерактивного чату фільмів -->
+    <script type="module">
+        import { initializeApp } from "https://gstatic.com";
+        import { getFirestore, collection, doc, onSnapshot, updateDoc, increment, addDoc } from "https://gstatic.com";
 
-        // Конфігурація проєкту Firebase (ФІНАЛЬНА — ПОВНА)
+        // Твоя фінальна конфігурація проєкту Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyCJSp79_UdG6j9tLcWotrM5EBKSOjrybYI",
-            authDomain: "banderizzation--project.firebaseapp.com",
+            authDomain: "://firebaseapp.com",
             projectId: "banderizzation--project",
-            storageBucket: "appspot.com",
+            storageBucket: "://appspot.com",
             messagingSenderId: "203896242149",
             appId: "1:203896242149:web:5d6c2de90f631edb84f90c",
             measurementId: "G-7RNPPCQ8ES"
         };
 
-
-        // Ініціалізація сервісів
+        // Ініціалізація
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
         const container = document.getElementById('movies-container');
+        const commentsList = document.getElementById('modalCommentsList');
         let activeMovieId = null;
+        let activeMovieTitle = "";
+        let unsubscribeComments = null;
 
-        // Зчитування фільмів з Firebase Firestore в Realtime режимі
+        // Лічильник символів для коментаря (0 / 500)
+        const chatTextarea = document.getElementById('chatText');
+        chatTextarea.oninput = function() {
+            document.getElementById('charCounter').innerText = `${this.value.length} / 500`;
+        };
+
+        // Функція маскування пошти (перетворює name@gmail.com -> na***@gmail.com)
+        function maskEmail(email) {
+            const parts = email.split('@');
+            if (parts.length !== 2) return "an***@ukr.net";
+            const name = parts[0];
+            const domain = parts[1];
+            if (name.length <= 2) return name + "***@" + domain;
+            return name.substring(0, 2) + "***@" + domain;
+        }
+
+        // Зчитування списку фільмів в Realtime
         onSnapshot(collection(db, "movies"), (snapshot) => {
             container.innerHTML = "";
             if(snapshot.empty) {
-                container.innerHTML = "<p class='sub-text'>Схоже, фільмів ще немає...</p>";
+                container.innerHTML = "<p class='sub-text'>Схоже, фільмів у базі ще немає...</p>";
                 return;
             }
 
@@ -190,7 +198,6 @@
                 const movie = docSnap.data();
                 const id = docSnap.id;
 
-                // Створення картки для кожного фільму в сітці
                 const card = document.createElement('div');
                 card.className = 'movie-card';
                 card.innerHTML = `
@@ -201,11 +208,9 @@
                     <p class="sub-text" style="font-size: 0.9rem; text-align: left; margin: 0;">${movie.description.substring(0, 75)}...</p>
                 `;
 
-                // При кліку на картку — відкриваємо плеєр та зараховуємо перегляд
                 card.onclick = () => openPlayer(id, movie);
                 container.appendChild(card);
 
-                // Якщо модалка цього фільму зараз відкрита у користувача, оновлюємо цифри лайків/переглядів на льоту
                 if (activeMovieId === id) {
                     document.getElementById('modalViews').innerText = movie.views || 0;
                     document.getElementById('modalLikes').innerText = movie.likes || 0;
@@ -213,52 +218,132 @@
             });
         });
 
+        // Стрімінг коментарів для конкретного фільму в реальному часі
+        function loadCommentsForMovie(movieTitle) {
+            if (unsubscribeComments) unsubscribeComments();
+
+            // Підключаємося до твоєї готової загальної колекції comments
+            unsubscribeComments = onSnapshot(collection(db, "comments"), (snapshot) => {
+                commentsList.innerHTML = "";
+                const filteredComments = [];
+
+                snapshot.forEach((docSnap) => {
+                    const c = docSnap.data();
+                    // Трюк-фільтрація: шукаємо мітку нашого фільму всередині тексту
+                    const prefix = `[Кіноскоп: ${movieTitle}]`;
+                    if (c.text && c.text.startsWith(prefix)) {
+                        const cleanText = c.text.replace(prefix, "").trim();
+                        filteredComments.push({
+                            maskedEmail: c.maskedEmail || "Анонім",
+                            text: cleanText,
+                            createdAt: c.createdAt ? new Date(c.createdAt.seconds * 1000) : new Date()
+                        });
+                    }
+                });
+
+                // Сортуємо: нові коментарі завжди зверху чату
+                filteredComments.sort((a, b) => b.createdAt - a.createdAt);
+
+                if (filteredComments.length === 0) {
+                    commentsList.innerHTML = "<p class='sub-text' style='font-size:0.9rem; color:rgba(255,255,255,0.3)'>Коментарів до цього фільму ще немає. Будьте першим!</p>";
+                    return;
+                }
+
+                filteredComments.forEach((c) => {
+                    const dateStr = c.createdAt.toLocaleDateString('uk-UA') + " " + c.createdAt.toLocaleTimeString('uk-UA', {hour: '2-digit', minute:'2-digit'});
+                    const item = document.createElement('div');
+                    item.className = 'comment-item';
+                    item.innerHTML = `
+                        <div class="comment-meta">
+                            <span>${c.maskedEmail}</span>
+                            <span>${dateStr}</span>
+                        </div>
+                        <p class="comment-text">${c.text}</p>
+                    `;
+                    commentsList.appendChild(item);
+                });
+            });
+        }
+
         // Функція відкриття плеєра
         async function openPlayer(id, movie) {
             activeMovieId = id;
+            activeMovieTitle = movie.title;
             
-            // Наповнюємо елементи модального вікна даними
             document.getElementById('modalTitle').innerText = movie.title;
             document.getElementById('modalDescription').innerText = movie.description;
             document.getElementById('modalViews').innerText = (movie.views || 0) + 1;
             document.getElementById('modalLikes').innerText = movie.likes || 0;
-            
-            // Вбудовуємо стрім-посилання з Google Диску в iframe
             document.getElementById('playerIframe').src = movie.videoUrl;
             
-            // Відображаємо модальне вікно на екрані
+            // Очищення полів вводу форми чату
+            document.getElementById('chatEmail').value = "";
+            chatTextarea.value = "";
+            document.getElementById('charCounter').innerText = "0 / 500";
+
             document.getElementById('videoModal').style.display = 'flex';
 
-            // Автоматично збільшуємо лічильник переглядів у Firestore (+1)
-            const movieRef = doc(db, "movies", id);
-            await updateDoc(movieRef, {
-                views: increment(1)
-            });
+            // Завантажуємо чат саме для цього фільму
+            loadCommentsForMovie(movie.title);
 
-            // Налаштовуємо обробник для кліку по кнопці лайка
-                        // Налаштовуємо обробник для кліку по кнопці лайка з блокуванням повторних натискань
+            // Кнопка лайка (анти-накрутка)
             const likeBtn = document.getElementById('modalLikeBtn');
-            likeBtn.disabled = false; // Робимо кнопку активною при відкритті нового фільму
-            likeBtn.style.opacity = "1";
-            likeBtn.style.cursor = "pointer";
+            likeBtn.disabled = false; likeBtn.style.opacity = "1"; likeBtn.style.cursor = "pointer";
+
+            const movieRef = doc(db, "movies", id);
+            await updateDoc(movieRef, { views: increment(1) });
 
             likeBtn.onclick = async () => {
-                likeBtn.disabled = true; // Миттєво блокуємо кнопку після першого ж кліку
-                likeBtn.style.opacity = "0.5"; // Візуально приглушуємо її неоновий колір
-                likeBtn.style.cursor = "not-allowed"; // Міняємо курсор миші
-
-                await updateDoc(movieRef, {
-                    likes: increment(1)
-                });
+                likeBtn.disabled = true; likeBtn.style.opacity = "0.5"; likeBtn.style.cursor = "not-allowed";
+                await updateDoc(movieRef, { likes: increment(1) });
             };
-
         }
 
-        // Функція закриття плеєра та зупинки завантаження відеофайна (експортуємо у глобальну область видимості)
+        // Логіка кнопки відправки коментаря
+        document.getElementById('sendCommentBtn').onclick = async () => {
+            const emailInput = document.getElementById('chatEmail').value.trim();
+            const textInput = chatTextarea.value.trim();
+
+            // Валідація імейлу (за твоїми правилами Firebase Rules)
+            const emailRegex = /^[^@ ]+@[^@ ]+\.[^@ ]+\$/;
+            if (!emailInput || emailInput.length > 254 || !emailRegex.test(emailInput)) {
+                alert("Будь ласка, введіть коректну електронну пошту.");
+                return;
+            }
+
+            // Валідація тексту (від 1 до 500 символів, враховуючи довжину нашої мітки)
+            const prefix = `[Кіноскоп: ${activeMovieTitle}] `;
+            if (!textInput || (prefix + textInput).length > 500) {
+                alert("Коментар порожній або занадто довгий.");
+                return;
+            }
+
+            try {
+                // Відправляємо дані у твою готову систему коментарів Firestore
+                await addDoc(collection(db, "comments"), {
+                    maskedEmail: maskEmail(emailInput),
+                    text: prefix + textInput,
+                    createdAt: new Date() // Валідується сервером як request.time
+                });
+
+                // Скидаємо поле вводу тексту
+                chatTextarea.value = "";
+                document.getElementById('charCounter').innerText = "0 / 500";
+            } catch (error) {
+                console.error("Помилка відправки:", error);
+                alert("Не вдалося надіслати коментар. Перевірте підключення.");
+            }
+        };
+
+        // Функція закриття плеєра
         window.closePlayer = function() {
             document.getElementById('videoModal').style.display = 'none';
-            document.getElementById('playerIframe').src = ''; // Чистимо src, щоб зупинити фоновий стрімінг 600МБ
+            document.getElementById('playerIframe').src = 'about:blank';
             activeMovieId = null;
+            if (unsubscribeComments) {
+                unsubscribeComments();
+                unsubscribeComments = null;
+            }
         }
     </script>
 </body>
