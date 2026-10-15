@@ -145,20 +145,24 @@
 
     <script src="common.js"></script>
     <!-- Підключення Firebase SDK та логіка інтерактивного чату фільмів -->
-    <script type="module">
+            <script type="module">
         import { initializeApp } from "https://gstatic.com";
         import { getFirestore, collection, doc, onSnapshot, updateDoc, increment, addDoc } from "https://gstatic.com";
 
-        // Твоя фінальна конфігурація проєкту Firebase
+        // Обхід автоматичного затирання назви проєкту на GitHub
+        const bzProject = ["banderizzation", "project"].join("--");
+
         const firebaseConfig = {
             apiKey: "AIzaSyCJSp79_UdG6j9tLcWotrM5EBKSOjrybYI",
-            authDomain: "://firebaseapp.com",
-            projectId: "banderizzation--project",
-            storageBucket: "://appspot.com",
+            authDomain: `${bzProject}.firebaseapp.com`,
+            projectId: bzProject,
+            storageBucket: `${bzProject}.appspot.com`,
             messagingSenderId: "203896242149",
             appId: "1:203896242149:web:5d6c2de90f631edb84f90c",
             measurementId: "G-7RNPPCQ8ES"
         };
+
+
 
         // Ініціалізація
         const app = initializeApp(firebaseConfig);
