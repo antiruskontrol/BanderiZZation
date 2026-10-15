@@ -307,11 +307,11 @@ const chatTextarea = document.getElementById('chatText');
             const textInput = chatTextarea.value.trim();
 
             // Валідація імейлу (за твоїми правилами Firebase Rules)
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailInput || emailInput.length > 254 || !e/;mailRegex.test(emailInput)) {
-                alert("Будь ласка, введіть коректну електронну пошту.");
-                return;
-            }
+           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+           if (!emailInput || emailInput.length > 254 || !emailRegex.test(emailInput)) {
+           alert("Будь ласка, введіть коректну електронну пошту.");
+           return;
+           }
 
             // Валідація тексту (від 1 до 500 символів, враховуючи довжину нашої мітки)
             const prefix = `[Кіноскоп: ${activeMovieTitle}] `;
