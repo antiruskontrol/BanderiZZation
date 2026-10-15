@@ -307,8 +307,8 @@ const chatTextarea = document.getElementById('chatText');
             const textInput = chatTextarea.value.trim();
 
             // Валідація імейлу (за твоїми правилами Firebase Rules)
-            const emailRegex = /^[^@ ]+@[^@ ]+\.[^@ ]+\$/;
-            if (!emailInput || emailInput.length > 254 || !emailRegex.test(emailInput)) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailInput || emailInput.length > 254 || !e/;mailRegex.test(emailInput)) {
                 alert("Будь ласка, введіть коректну електронну пошту.");
                 return;
             }
