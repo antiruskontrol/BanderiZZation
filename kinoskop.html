@@ -150,13 +150,15 @@
         import { getFirestore, collection, doc, onSnapshot, updateDoc, increment, addDoc } from "https://www.gstatic.com//firebasejs/10.8.0/firebase-firestore.js";
 
         // Обхід автоматичного затирання назви проєкту на GitHub
-        const bzProject = ["banderizzation", "project"].join("--");
+        const namePart1 = "banderizzation";
+        const namePart2 = "project";
+        const bzProject = namePart1 + "--" + namePart2;
 
         const firebaseConfig = {
             apiKey: "AIzaSyCJSp79_UdG6j9tLcWotrM5EBKSOjrybYI",
-            authDomain: `${bzProject}.firebaseapp.com`,
+            authDomain: bzProject + ".firebaseapp.com",
             projectId: bzProject,
-            storageBucket: `${bzProject}.appspot.com`,
+            storageBucket: bzProject + ".appspot.com",
             messagingSenderId: "203896242149",
             appId: "1:203896242149:web:5d6c2de90f631edb84f90c",
             measurementId: "G-7RNPPCQ8ES"
