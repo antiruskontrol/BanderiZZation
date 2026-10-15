@@ -166,21 +166,17 @@
 
 
 
-        // Ініціалізація
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+const app = initializeApp(firebaseConfig);
+let db;
+try {
+db = getFirestore(app);
+} catch (e) {
+db = getFirestore();
+}
 
-        const container = document.getElementById('movies-container');
-        const commentsList = document.getElementById('modalCommentsList');
-        let activeMovieId = null;
-        let activeMovieTitle = "";
-        let unsubscribeComments = null;
-
-        // Лічильник символів для коментаря (0 / 500)
-        const chatTextarea = document.getElementById('chatText');
-        chatTextarea.oninput = function() {
-            document.getElementById('charCounter').innerText = `${this.value.length} / 500`;
-        };
+const container = document.getElementById('movies-container');
+const commentsList = document.getElementById('modalCommentsList');
+let activeMovieId = null;
 
         // Функція маскування пошти (перетворює name@gmail.com -> na***@gmail.com)
         function maskEmail(email) {
