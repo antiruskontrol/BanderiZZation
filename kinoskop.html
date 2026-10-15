@@ -147,7 +147,7 @@
     <!-- Підключення Firebase SDK та логіка інтерактивного чату фільмів -->
             <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, doc, onSnapshot, updateDoc, increment, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, doc, onSnapshot, updateDoc, increment, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Обхід автоматичного затирання назви проєкту на GitHub
       // Хітра склейка для обходу автоматичного затирання тексту на GitHub
@@ -324,8 +324,8 @@ const chatTextarea = document.getElementById('chatText');
                 // Відправляємо дані у твою готову систему коментарів Firestore
                 await addDoc(collection(db, "comments"), {
                     maskedEmail: maskEmail(emailInput),
-                    text: prefix + textInput,
-                    createdAt: new Date() // Валідується сервером як request.time
+                    text: textInput,
+                    createdAt: serverTimestamp() // Валідується сервером як request.time
                 });
 
                 // Скидаємо поле вводу тексту
