@@ -1,18 +1,22 @@
 <!--
 ===================================================================
-Версія:       1.0.2 (BanderiZZation! Hub — kinoskop.html)
-Дата, час:    2026-10-15 11:00
+Версія:       1.0.3 (BanderiZZation! Hub — kinoskop.html)
+Дата, час:    2026-10-15 12:30
 Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
 -------------------------------------------------------------------
 Еволюція змін:
  Зміни 1.0.0:
-  1. Нова сторінка-заглушка «Кіноскоп»: назва, опис і приклеєна кнопка
-     «← До хабу». Стилі — у style.css (підсторінки, v1.1.4 і новіші).
+  1. Нова сторінка-заглушка «Кіноскоп»...
  Зміни 1.0.1 відносно 1.0.0:
-  1. Підключено common.js: верхня панель, плавні переходи (0.75 с), меню «Атмосфера», стрічка новин.
- Зміни 1.0.2 відносно 1.0.1 (Поточна версія):
-  1. Фон сторінки: sky/backfilm.png (клас page-kinoskop, стилі — style.css v1.1.8).
-  2. Опис на сторінці узгоджено з описом кнопки: «Українські фільми, яких ви ніколи не бачили!».
+  1. Підключено common.js...
+ Зміни 1.0.2 відносно 1.0.1:
+  1. Фон сторінки: sky/backfilm.png, оновлено опис сторінки.
+ Зміни 1.0.3 відносно 1.0.2 (Поточна версія):
+  1. Видалено заглушку «Сторінка наповнюється».
+  2. Додано контейнер #movies-container для динамічної сітки фільмів.
+  3. Інтегровано Neon Pop-up Player (модальне вікно відеоплеєра).
+  4. Підключено Firebase SDK та логіку взаємодії в реальному часі 
+     (Рядок: [Перегляди] • [Лайки] • Назва фільму).
 ===================================================================
 -->
 <!DOCTYPE html>
@@ -24,6 +28,94 @@
     <link rel="stylesheet" href="style.css">
     <script>document.documentElement.className += ' bz-pre';</script>
     <link rel="icon" type="image/png" sizes="144x144" href="favicon.png">
+    
+    <!-- Стилі для кіберпанк-відеоплеєра та карток (можна перенести в style.css v1.1.9) -->
+    <style>
+        .movies-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        .movie-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 242, 254, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .movie-card:hover {
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.6);
+            border-color: rgba(0, 242, 254, 1);
+            transform: translateY(-3px);
+        }
+        .movie-title-card {
+            font-size: 1.2rem;
+            color: #fff;
+            margin: 10px 0;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+        /* Модальне вікно плеєра */
+        .neon-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 5, 20, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: #0d0614;
+            border: 2px solid #ff007f;
+            box-shadow: 0 0 25px #ff007f;
+            border-radius: 16px;
+            width: 90%; max-width: 800px;
+            padding: 20px;
+            position: relative;
+        }
+        .close-btn {
+            position: absolute;
+            top: -15px; right: -15px;
+            background: #ff007f; color: #fff;
+            border: none; border-radius: 50%;
+            width: 35px; height: 35px;
+            font-size: 1.2rem; cursor: pointer;
+            box-shadow: 0 0 10px #ff007f;
+            transition: all 0.2s;
+        }
+        .close-btn:hover {
+            background: #fff; color: #ff007f;
+            box-shadow: 0 0 15px #fff;
+        }
+        .video-wrapper {
+            position: relative; padding-bottom: 56.25%; height: 0;
+            border-radius: 8px; overflow: hidden;
+            background: #000;
+        }
+        .video-wrapper iframe {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;
+        }
+        .info-row {
+            display: flex; align-items: center; gap: 15px;
+            margin: 15px 0 10px 0; font-family: monospace; font-size: 1rem;
+        }
+        .meta-item { color: #00f2fe; text-shadow: 0 0 5px rgba(0, 242, 254, 0.5); }
+        .like-btn {
+            background: transparent; border: 1px solid #ff007f;
+            color: #ff007f; border-radius: 6px; padding: 3px 8px;
+            cursor: pointer; font-family: monospace; transition: all 0.2s;
+        }
+        .like-btn:hover {
+            background: #ff007f; color: #fff; box-shadow: 0 0 10px #ff007f;
+        }
+        .modal-movie-title {
+            color: #fff; font-size: 1.4rem; margin: 0;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+        }
+    </style>
 </head>
 <body class="sub-page page-kinoskop">
 
@@ -32,11 +124,128 @@
 
         <section class="glass-panel">
             <h2 class="sub-title">🎬 Кіноскоп</h2>
-            <p class="sub-text">Українські фільми, яких ви ніколи не бачили!</p>
-            <p class="sub-text">Ця сторінка ще наповнюється.</p>
+            <p class="sub-text">Українські фильм, яких ви ніколи не бачили!</p>
+            
+            <!-- Динамічна сітка для фільмів із Firebase -->
+            <div id="movies-container" class="movies-grid">
+                <p class="sub-text" style="color: #00f2fe;">Завантаження кінескопа...</p>
+            </div>
         </section>
     </div>
 
+    <!-- Neon Pop-up Player (Модальне вікно) -->
+    <div id="videoModal" class="neon-modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closePlayer()">×</button>
+            <div class="video-wrapper">
+                <iframe id="playerIframe" src="" allow="autoplay"></iframe>
+            </div>
+            
+            <!-- Затверджений інформаційний рядок: Перегляди • Лайки • Назва -->
+            <div class="info-row">
+                <span class="meta-item">👁️ <span id="modalViews">0</span></span>
+                <button class="like-btn" id="modalLikeBtn">🔥 <span id="modalLikes">0</span></button>
+                <span style="color: rgba(255,255,255,0.4)">•</span>
+                <h3 class="modal-movie-title" id="modalTitle">Назва фільму</h3>
+            </div>
+            
+            <p class="sub-text" id="modalDescription" style="font-size: 0.95rem; margin-top: 10px; text-align: left;"></p>
+        </div>
+    </div>
+
     <script src="common.js"></script>
+    <!-- Підключення модульного SDK Firebase та інтерактивна логіка -->
+    <script type="module">
+        import { initializeApp } from "https://gstatic.com";
+        import { getFirestore, collection, doc, onSnapshot, updateDoc, increment } from "https://gstatic.com";
+
+        // Конфігурація проєкту Firebase (відповідає налаштуванням з твоєї консолі)
+        const firebaseConfig = {
+            authDomain: "://firebaseapp.com",
+            projectId: "banderizzation--project",
+            storageBucket: "://appspot.com",
+            messagingSenderId: "338873099026",
+            appId: "1:338873099026:web:866299d6fc13ef04cfc580"
+        };
+
+        // Ініціалізація сервісів
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const container = document.getElementById('movies-container');
+        let activeMovieId = null;
+
+        // Зчитування фільмів з Firebase Firestore в Realtime режимі
+        onSnapshot(collection(db, "movies"), (snapshot) => {
+            container.innerHTML = "";
+            if(snapshot.empty) {
+                container.innerHTML = "<p class='sub-text'>Схоже, фільмів ще немає...</p>";
+                return;
+            }
+
+            snapshot.forEach((docSnap) => {
+                const movie = docSnap.data();
+                const id = docSnap.id;
+
+                // Створення картки для кожного фільму в сітці
+                const card = document.createElement('div');
+                card.className = 'movie-card';
+                card.innerHTML = `
+                    <div style="font-family: monospace; font-size: 0.85rem; color: #00f2fe; margin-bottom: 5px; text-align: left;">
+                        👁️ ${movie.views || 0}  |  🔥 ${movie.likes || 0}
+                    </div>
+                    <h3 class="movie-title-card" style="text-align: left;">${movie.title}</h3>
+                    <p class="sub-text" style="font-size: 0.9rem; text-align: left; margin: 0;">${movie.description.substring(0, 75)}...</p>
+                `;
+
+                // При кліку на картку — відкриваємо плеєр та зараховуємо перегляд
+                card.onclick = () => openPlayer(id, movie);
+                container.appendChild(card);
+
+                // Якщо модалка цього фільму зараз відкрита у користувача, оновлюємо цифри лайків/переглядів на льоту
+                if (activeMovieId === id) {
+                    document.getElementById('modalViews').innerText = movie.views || 0;
+                    document.getElementById('modalLikes').innerText = movie.likes || 0;
+                }
+            });
+        });
+
+        // Функція відкриття плеєра
+        async function openPlayer(id, movie) {
+            activeMovieId = id;
+            
+            // Наповнюємо елементи модального вікна даними
+            document.getElementById('modalTitle').innerText = movie.title;
+            document.getElementById('modalDescription').innerText = movie.description;
+            document.getElementById('modalViews').innerText = (movie.views || 0) + 1;
+            document.getElementById('modalLikes').innerText = movie.likes || 0;
+            
+            // Вбудовуємо стрім-посилання з Google Диску в iframe
+            document.getElementById('playerIframe').src = movie.videoUrl;
+            
+            // Відображаємо модальне вікно на екрані
+            document.getElementById('videoModal').style.display = 'flex';
+
+            // Автоматично збільшуємо лічильник переглядів у Firestore (+1)
+            const movieRef = doc(db, "movies", id);
+            await updateDoc(movieRef, {
+                views: increment(1)
+            });
+
+            // Налаштовуємо обробник для кліку по кнопці лайка
+            document.getElementById('modalLikeBtn').onclick = async () => {
+                await updateDoc(movieRef, {
+                    likes: increment(1)
+                });
+            };
+        }
+
+        // Функція закриття плеєра та зупинки завантаження відеофайна (експортуємо у глобальну область видимості)
+        window.closePlayer = function() {
+            document.getElementById('videoModal').style.display = 'none';
+            document.getElementById('playerIframe').src = ''; // Чистимо src, щоб зупинити фоновий стрімінг 600МБ
+            activeMovieId = null;
+        }
+    </script>
 </body>
 </html>
