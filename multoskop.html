@@ -1,17 +1,20 @@
 <!--
 ===================================================================
-Версія:       1.0.3 (BanderiZZation! Hub — multfilmroskop.html)
-Дата, час:    2026-10-15 14:05
+Версія:       1.0.2 (BanderiZZation! Hub — multoskop.html)
+Дата, час:    2026-10-16 01:40
 Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
 -------------------------------------------------------------------
 Еволюція змін:
- Зміни 1.0.0-1.0.2:
-  1. Попередні статичні версії сторінки-заглушки «Мультфільмоскоп».
- Зміни 1.0.3 відносно 1.0.2 (Поточна версія):
-  1. Видалено заглушку «Сторінка наповнюється».
-  2. Додано динамічний контейнер #multfilms-container під мультфільми.
-  3. Інтегровано повноекранний Neon Pop-up Player.
-  4. Підключено захищену систему анти-накрутки лайків (Один клік — Один лайк).
+ Зміни 1.0.0:
+  1. Нова сторінка-заглушка «Мультфільмоскоп». Фон: sky/skymult.png.
+ Зміни 1.0.1 відносно 1.0.0:
+  1. Заглушку замінено на повноцінну сторінку: сітка мультфільмів із колекції
+     cartoons (Firestore), неон-плеєр, лічильники переглядів і лайків.
+  2. Гілка коментарів під кожним мультфільмом: підколекція cartoons/{id}/comments.
+  3. Логіка та стилі — спільні з Кіноскопом (player.js / player.css).
+ Зміни 1.0.2 відносно 1.0.1 (Поточна версія):
+  1. Сторінка перейменована: «Мультфільмоскоп» → «Мультоскоп» (назва, заголовок, підпис).
+  2. player.js підключено як звичайний скрипт (працює й при відкритті з диска file://).
 ===================================================================
 -->
 <!DOCTYPE html>
@@ -19,242 +22,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мультфільмоскоп — BanderiZZation!</title>
+    <title>Мультоскоп — BanderiZZation!</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="player.css">
     <script>document.documentElement.className += ' bz-pre';</script>
     <link rel="icon" type="image/png" sizes="144x144" href="favicon.png">
-    
-    <!-- Стилі для кіберпанк-відеоплеєра та карток мультфільмів -->
-    <style>
-        .movies-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
-            margin-top: 30px;
-        }
-        .movie-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(0, 242, 254, 0.2);
-            border-radius: 12px;
-            padding: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .movie-card:hover {
-            box-shadow: 0 0 15px rgba(0, 242, 254, 0.6);
-            border-color: rgba(0, 242, 254, 1);
-            transform: translateY(-3px);
-        }
-        .movie-title-card {
-            font-size: 1.2rem;
-            color: #fff;
-            margin: 10px 0;
-            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
-        }
-        /* Модальне вікно плеєра */
-        .neon-modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(10, 5, 20, 0.85);
-            backdrop-filter: blur(8px);
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background: #0d0614;
-            border: 2px solid #ff007f;
-            box-shadow: 0 0 25px #ff007f;
-            border-radius: 16px;
-            width: 90%; max-width: 800px;
-            padding: 20px;
-            position: relative;
-        }
-        .close-btn {
-            position: absolute;
-            top: -15px; right: -15px;
-            background: #ff007f; color: #fff;
-            border: none; border-radius: 50%;
-            width: 35px; height: 35px;
-            font-size: 1.2rem; cursor: pointer;
-            box-shadow: 0 0 10px #ff007f;
-            transition: all 0.2s;
-        }
-        .close-btn:hover {
-            background: #fff; color: #ff007f;
-            box-shadow: 0 0 15px #fff;
-        }
-        .video-wrapper {
-            position: relative; padding-bottom: 56.25%; height: 0;
-            border-radius: 8px; overflow: hidden;
-            background: #000;
-        }
-        .video-wrapper iframe {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;
-        }
-        .info-row {
-            display: flex; align-items: center; gap: 15px;
-            margin: 15px 0 10px 0; font-family: monospace; font-size: 1rem;
-        }
-        .meta-item { color: #00f2fe; text-shadow: 0 0 5px rgba(0, 242, 254, 0.5); }
-        .like-btn {
-            background: transparent; border: 1px solid #ff007f;
-            color: #ff007f; border-radius: 6px; padding: 3px 8px;
-            cursor: pointer; font-family: monospace; transition: all 0.2s;
-        }
-        .like-btn:hover {
-            background: #ff007f; color: #fff; box-shadow: 0 0 10px #ff007f;
-        }
-        .modal-movie-title {
-            color: #fff; font-size: 1.4rem; margin: 0;
-            text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
-        }
-    </style>
 </head>
-<body class="sub-page page-kinoskop">
+<body class="sub-page page-multoskop page-player" data-collection="cartoons" data-label="Мультоскоп" data-empty="Схоже, мультфільмів у базі ще немає...">
 
     <div class="sub-wrap">
         <a class="back-link" href="index.html">← До хабу</a>
 
         <section class="glass-panel">
-            <h2 class="sub-title">🎞 Мультфільмоскоп</h2>
-            <p class="sub-text">Українські мультфільми, яких ви ніколи не бачили!</p>
-            
-            <!-- Динамічна сітка для мультфільмів із Firebase -->
-            <div id="multfilms-container" class="movies-grid">
-                <p class="sub-text" style="color: #00f2fe;">Завантаження мультфільмоскопа...</p>
+            <h2 class="sub-title">🎞️ Мультоскоп</h2>
+            <p class="sub-text">Українські мультфільми які ви ніколи не бачили!</p>
+            <div id="movies-container" class="movies-grid">
+                <p class="sub-text" style="color: #00f2fe;">Завантаження мультфільмів...</p>
             </div>
         </section>
     </div>
 
-    <!-- Neon Pop-up Player (Модальне вікно) -->
-    <div id="videoModal" class="neon-modal">
-        <div class="modal-content">
-            <button class="close-btn" onclick="closePlayer()">×</button>
+    <!-- Вікно плеєра з коментарями (логіка та стилі — player.js / player.css) -->
+    <div id="videoModal" class="player-modal" aria-hidden="true">
+        <div class="player-box">
+            <button class="player-close" id="closePlayerBtn" aria-label="Закрити">×</button>
             <div class="video-wrapper">
                 <iframe id="playerIframe" src="about:blank" allow="autoplay; fullscreen" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>
             </div>
-            
-            <!-- Рядок активності: Перегляди • Лайки • Назва мультика -->
+
             <div class="info-row">
                 <span class="meta-item">👁️ <span id="modalViews">0</span></span>
                 <button class="like-btn" id="modalLikeBtn">🔥 <span id="modalLikes">0</span></button>
                 <span style="color: rgba(255,255,255,0.4)">•</span>
-                <h3 class="modal-movie-title" id="modalTitle">Назва анімації</h3>
+                <h3 class="modal-movie-title" id="modalTitle">Назва</h3>
             </div>
-            
-            <p class="sub-text" id="modalDescription" style="font-size: 0.95rem; margin-top: 10px; text-align: left;"></p>
+
+            <p class="player-desc" id="modalDescription"></p>
+
+            <!-- Гілка коментарів: лишається під фільмом (підколекція в Firestore) -->
+            <div class="chat-section">
+                <h3 class="chat-title">Коментарі до мультфільму</h3>
+
+                <div class="form-group">
+                    <label for="chatEmail">Пошта</label>
+                    <input type="email" id="chatEmail" class="chat-input" placeholder="name@gmail.com" maxlength="254" autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label for="chatText">Коментар</label>
+                    <textarea id="chatText" class="chat-textarea" rows="3" maxlength="500" placeholder="Ваш коментар (до 500 символів)"></textarea>
+                    <div class="chat-counter" id="charCounter">0 / 500</div>
+                </div>
+
+                <!-- Поле-пастка від ботів: людина його не бачить -->
+                <input id="chatWebsite" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp-field">
+
+                <button class="submit-chat-btn" id="sendCommentBtn" type="button">Надіслати</button>
+                <div class="chat-status" id="chatStatus" role="status" aria-live="polite"></div>
+
+                <div class="chat-list" id="modalCommentsList"></div>
+            </div>
         </div>
     </div>
 
     <script src="common.js"></script>
-    <!-- Підключення модульного SDK Firebase та інтерактивна мульт-логіка -->
-    <script type="module">
-        import { initializeApp } from "https://gstatic.com";
-        import { getFirestore, collection, doc, onSnapshot, updateDoc, increment } from "https://gstatic.com";
-
-        // Твоя фінальна перевірена конфігурація проєкту Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyCJSp79_UdG6j9tLcWotrM5EBKSOjrybYI",
-            authDomain: "://firebaseapp.com",
-            projectId: "banderizzation--project",
-            storageBucket: "://appspot.com",
-            messagingSenderId: "203896242149",
-            appId: "1:203896242149:web:5d6c2de90f631edb84f90c",
-            measurementId: "G-7RNPPCQ8ES"
-        };
-
-        // Ініціалізація сервісів
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        const container = document.getElementById('multfilms-container');
-        let activeMovieId = null;
-
-        // Зчитування мультфільмів з Firebase у Realtime режимі (колекція animations)
-        onSnapshot(collection(db, "animations"), (snapshot) => {
-            container.innerHTML = "";
-            if(snapshot.empty) {
-                container.innerHTML = "<p class='sub-text'>Схоже, мультфільмів у базі ще немає...</p>";
-                return;
-            }
-
-            snapshot.forEach((docSnap) => {
-                const movie = docSnap.data();
-                const id = docSnap.id;
-
-                // Створення картки мультфільму
-                const card = document.createElement('div');
-                card.className = 'movie-card';
-                card.innerHTML = `
-                    <div style="font-family: monospace; font-size: 0.85rem; color: #00f2fe; margin-bottom: 5px; text-align: left;">
-                        👁️ ${movie.views || 0}  |  🔥 ${movie.likes || 0}
-                    </div>
-                    <h3 class="movie-title-card" style="text-align: left;">${movie.title}</h3>
-                    <p class="sub-text" style="font-size: 0.9rem; text-align: left; margin: 0;">${movie.description.substring(0, 75)}...</p>
-                `;
-
-                // При кліку на картку — відкриваємо плеєр та зараховуємо перегляд
-                card.onclick = () => openPlayer(id, movie);
-                container.appendChild(card);
-
-                // Оновлення цифр у відкритій модалці на льоту
-                if (activeMovieId === id) {
-                    document.getElementById('modalViews').innerText = movie.views || 0;
-                    document.getElementById('modalLikes').innerText = movie.likes || 0;
-                }
-            });
-        });
-
-        // Функція відкриття плеєра
-        async function openPlayer(id, movie) {
-            activeMovieId = id;
-            
-            // Наповнюємо елементи модального вікна даними
-            document.getElementById('modalTitle').innerText = movie.title;
-            document.getElementById('modalDescription').innerText = movie.description;
-            document.getElementById('modalViews').innerText = (movie.views || 0) + 1;
-            document.getElementById('modalLikes').innerText = movie.likes || 0;
-            
-            // Вбудовуємо посилання з Google Диску в iframe
-            document.getElementById('playerIframe').src = movie.videoUrl;
-            
-            // Відображаємо плеєр
-            document.getElementById('videoModal').style.display = 'flex';
-
-            // Налаштування кнопки лайка за нашою схемою анти-накрутки
-            const likeBtn = document.getElementById('modalLikeBtn');
-            likeBtn.disabled = false; 
-            likeBtn.style.opacity = "1";
-            likeBtn.style.cursor = "pointer";
-
-            // Посилання на документ саме в колекції animations
-            const movieRef = doc(db, "animations", id);
-
-            // Автоматично збільшуємо лічильник переглядів у Firestore (+1)
-            await updateDoc(movieRef, {
-                views: increment(1)
-            });
-
-            // Обробник кліку на вогник — блокується після першого натискання
-            likeBtn.onclick = async () => {
-                likeBtn.disabled = true; 
-                likeBtn.style.opacity = "0.5"; 
-                likeBtn.style.cursor = "not-allowed"; 
-
-                await updateDoc(movieRef, {
-                    likes: increment(1)
-                });
-            };
-        }
-
-        // Функція закриття плеєра та зупинки фонового потоку відео
-        window.closePlayer = function() {
-            document.getElementById('videoModal').style.display = 'none';
-            document.getElementById('playerIframe').src = 'about:blank'; // Захист від фонового завантаження медіа
-            activeMovieId = null;
-        }
-    </script>
+    <script src="player.js"></script>
 </body>
 </html>

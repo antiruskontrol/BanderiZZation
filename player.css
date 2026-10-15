@@ -1,0 +1,204 @@
+/*
+===================================================================
+Версія:       1.0.1 (BanderiZZation! Hub — player.css)
+Дата, час:    2026-10-16 01:40
+Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
+-------------------------------------------------------------------
+Еволюція змін:
+ Зміни 1.0.0:
+  1. Стилі, винесені з kinoskop.html (v1.0.4): сітка карток, неон-плеєр,
+     блок коментарів під відео. Спільні для Кіноскопу та Мультфільмоскопу.
+  2. Класи вікна перейменовано (.player-modal/.player-box/.player-close),
+     щоб не конфліктувати з .modal-content/.close-btn зі style.css.
+  3. Вікно плеєра з'являється/зникає через opacity за --fade-time (1.2 с).
+  4. Кнопка «← До хабу» піднята над плеєром (z-index), прокрутка сторінки
+     під плеєром блокується.
+  5. Нові класи коментарів: .chat-comment* (без конфліктів зі style.css).
+ Зміни 1.0.1 відносно 1.0.0 (Поточна версія):
+  1. Тонка темна прокрутка в рожевому неоні для вікна плеєра та списку
+     коментарів (замість білої системної смуги).
+===================================================================
+*/
+
+/* ---------- Сітка карток ---------- */
+.movies-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 25px;
+    margin-top: 30px;
+}
+.movie-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(0, 242, 254, 0.2);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.movie-card:hover,
+.movie-card:focus-visible {
+    box-shadow: 0 0 15px rgba(0, 242, 254, 0.6);
+    border-color: rgba(0, 242, 254, 1);
+    transform: translateY(-3px);
+    outline: none;
+}
+.movie-stats { font-family: monospace; font-size: 0.85rem; color: #00f2fe; margin-bottom: 5px; }
+.movie-title-card { font-size: 1.2rem; color: #fff; margin: 10px 0; text-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+.movie-desc { font-size: 0.9rem; margin: 0; color: #cbd5e1; text-shadow: none; }
+
+/* ---------- Вікно плеєра ---------- */
+body.player-open { overflow: hidden; }
+
+.player-modal {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    box-sizing: border-box;
+    padding: 6.2rem 1rem 1.5rem; /* місце під верхню панель і кнопку «До хабу» */
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    background: rgba(10, 5, 20, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 9999;
+
+    /* Плавна поява/зникнення (опасіті) */
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity var(--fade-time) ease-in-out, visibility var(--fade-time) ease-in-out;
+}
+.player-modal.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.player-box {
+    position: relative;
+    box-sizing: border-box;
+    width: 95%;
+    max-width: 800px;
+    max-height: calc(100vh - 8rem);
+    padding: 25px;
+    overflow-y: auto;
+    text-align: left;
+    color: #ffffff;
+    text-shadow: none; /* не успадковуємо помаранчеве світіння сторінки */
+    background: #0d0614;
+    border: 2px solid #ff007f;
+    border-radius: 16px;
+    box-shadow: 0 0 25px #ff007f;
+}
+
+.player-close {
+    position: absolute;
+    top: 10px; right: 10px;
+    width: 35px; height: 35px;
+    border: none;
+    border-radius: 50%;
+    background: #ff007f;
+    color: #fff;
+    font-size: 1.2rem;
+    cursor: pointer;
+    box-shadow: 0 0 10px #ff007f;
+    z-index: 10;
+    transition: all 0.2s;
+}
+.player-close:hover { background: #fff; color: #ff007f; box-shadow: 0 0 15px #fff; }
+
+/* «До хабу» над плеєром: видно й можна натиснути, поки відео відкрите */
+.page-player .back-link { z-index: 10000; }
+
+.video-wrapper {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #000;
+}
+.video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+
+.info-row { display: flex; align-items: center; gap: 15px; margin: 15px 0 10px 0; font-family: monospace; font-size: 1rem; flex-wrap: wrap; }
+.meta-item { color: #00f2fe; text-shadow: 0 0 5px rgba(0, 242, 254, 0.5); }
+.like-btn {
+    background: transparent;
+    border: 1px solid #ff007f;
+    color: #ff007f;
+    border-radius: 6px;
+    padding: 3px 8px;
+    cursor: pointer;
+    font-family: monospace;
+    transition: all 0.2s;
+}
+.like-btn:hover:not(:disabled) { background: #ff007f; color: #fff; box-shadow: 0 0 10px #ff007f; }
+.like-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.modal-movie-title { margin: 0; color: #fff; font-size: 1.4rem; text-shadow: 0 0 8px rgba(255, 255, 255, 0.8); }
+.player-desc { margin: 10px 0 20px; font-size: 0.95rem; line-height: 1.5; color: #cbd5e1; }
+
+/* ---------- Коментарі під відео ---------- */
+.chat-section { margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255, 0, 127, 0.3); }
+.chat-title { margin: 0 0 15px; color: #ffd700; font-size: 1.3rem; text-shadow: 0 0 5px rgba(255, 215, 0, 0.4); }
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; margin-bottom: 5px; color: #fff; font-size: 0.9rem; font-family: monospace; }
+.chat-input,
+.chat-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px;
+    border: 1px solid rgba(0, 242, 254, 0.3);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.95rem;
+    transition: all 0.3s;
+}
+.chat-textarea { resize: vertical; }
+.chat-input:focus,
+.chat-textarea:focus { border-color: #00f2fe; box-shadow: 0 0 10px rgba(0, 242, 254, 0.4); outline: none; }
+.chat-counter { margin-top: 4px; text-align: right; font-size: 0.8rem; color: rgba(255, 255, 255, 0.4); }
+
+.submit-chat-btn {
+    padding: 10px 25px;
+    border: 1px solid #ff007f;
+    border-radius: 8px;
+    background: rgba(255, 0, 127, 0.2);
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(255, 0, 127, 0.3);
+    transition: all 0.3s;
+}
+.submit-chat-btn:hover:not(:disabled) { background: #ff007f; box-shadow: 0 0 15px #ff007f; }
+.submit-chat-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.chat-status { min-height: 1.2rem; margin-top: 10px; font-size: 0.9rem; }
+.chat-status.ok { color: #22c55e; }
+.chat-status.err { color: #f87171; }
+
+.chat-list { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; max-height: 250px; overflow-y: auto; }
+.chat-empty { margin: 0; font-size: 0.9rem; color: rgba(255, 255, 255, 0.4); }
+.chat-comment {
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
+}
+.chat-comment-meta { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: 6px; font-size: 0.8rem; color: #00f2fe; font-family: monospace; }
+.chat-comment-text { margin: 0; color: #ddd; font-size: 0.95rem; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* ---------- Прокрутка в стилі плеєра (v1.0.1) ---------- */
+.player-box,
+.chat-list {
+    scrollbar-width: thin;
+    scrollbar-color: #ff007f #0d0614;
+}
+.player-box::-webkit-scrollbar,
+.chat-list::-webkit-scrollbar { width: 8px; }
+.player-box::-webkit-scrollbar-track,
+.chat-list::-webkit-scrollbar-track { background: #0d0614; }
+.player-box::-webkit-scrollbar-thumb,
+.chat-list::-webkit-scrollbar-thumb { background: #ff007f; border-radius: 4px; box-shadow: 0 0 6px #ff007f; }
