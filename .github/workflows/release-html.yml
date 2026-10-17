@@ -8,6 +8,8 @@ jobs:
   release:
     name: Update Latest Release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Даємо роботу дозвіл писати у цей репозиторій
 
     steps:
       - name: Checkout repository code
@@ -46,7 +48,7 @@ jobs:
           tag_name: latest
           make_latest: "true"
           prerelease: false
-          overwrite: true 
+          overwrite: true
           body: |
             ## 🌤️ Актуальна стабільна збірка додатка WeatherInUkraine
             Поточна версія сторінки: **v${{ env.APP_VERSION }}** (WeatherScope Pro).
