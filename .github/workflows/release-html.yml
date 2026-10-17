@@ -8,8 +8,6 @@ jobs:
   release:
     name: Update Latest Release
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
       - name: Checkout repository code
@@ -34,21 +32,30 @@ jobs:
             fs.appendFileSync(process.env.GITHUB_ENV, 'APP_VERSION=' + version + '\n');
           "
 
-      # 2. ВИПРАВЛЕННЯ: Спочатку створюємо той самий ZIP архів, який будемо публікувати
+      # 2. Створюємо ZIP архів
       - name: Create Release ZIP Archive
         run: |
           zip -r weather-ukraine-v${{ env.APP_VERSION }}.zip . -x "*.git*" ".github*"
 
-      # 3. Публікуємо актуальний реліз вебдодатка разом із створеним архівом
+      # 3. Публікуємо актуальний реліз вебдодатка разом із створеним архівом у ПУБЛІЧНИЙ репозиторій
       - name: Update GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          # Вказуємо шлях до нашого нового публічного репозиторію
+          repository: antiruskontrol/BanderiZZation-Release
+          
+          # Використовуємо наш згенерований раніше секрет замість стандартного токена
+          token: ${{ secrets.RELEASE_TOKEN }}
+          
           files: weather-ukraine-v${{ env.APP_VERSION }}.zip
           name: WeatherInUkraine Build v${{ env.APP_VERSION }}
           tag_name: latest
           make_latest: "true"
           prerelease: false
-          overwrite: true
+          
+          # Оскільки ми перезаписуємо реліз "latest", цей параметр дозволить оновлювати файли
+          overwrite: true 
+          
           body: |
             ## 🌤️ Актуальна стабільна збірка додатка WeatherInUkraine
             Поточна версія сторінки: **v${{ env.APP_VERSION }}** (WeatherScope Pro).
@@ -58,5 +65,3 @@ jobs:
             ### 📦 Інструкція:
             Цей архів містить повну резервну копію коду для версії **v${{ env.APP_VERSION }}**. 
             Ви можете завантажити його для локального тестування або розгортання вебсторінки на власному хостингу.
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
