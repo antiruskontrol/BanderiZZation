@@ -37,7 +37,17 @@ jobs:
         run: |
           zip -r weather-ukraine-v${{ env.APP_VERSION }}.zip . -x "*.git*" ".github*"
 
-      # 3. Публікуємо актуальний реліз вебдодатка разом із створеним архівом у ПУБЛІЧНИЙ репозиторій
+      # 3. НОВИЙ КРОК: Деплоїмо чисті файли сайту в публічний репозиторій (це запустить GitHub Pages)
+      - name: Deploy static site to Public Repo
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          token: ${{ secrets.RELEASE_TOKEN }}
+          repository-name: antiruskontrol/BanderiZZation-Release
+          branch: main # Пушимо у головну гілку публічного репозиторію
+          folder: . # Беремо всі файли з поточного приватного репозиторію
+          clean: true
+
+      # 4. Публікуємо актуальний реліз вебдодатка разом із створеним архівом у ПУБЛІЧНИЙ репозиторій
       - name: Update GitHub Release
         uses: softprops/action-gh-release@v2
         with:
