@@ -37,35 +37,16 @@ jobs:
         run: |
           zip -r weather-ukraine-v${{ env.APP_VERSION }}.zip . -x "*.git*" ".github*"
 
-      # 3. НОВИЙ КРОК: Деплоїмо чисті файли сайту в публічний репозиторій (це запустить GitHub Pages)
-      - name: Deploy static site to Public Repo
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          token: ${{ secrets.RELEASE_TOKEN }}
-          repository-name: antiruskontrol/BanderiZZation-Release
-          branch: main # Пушимо у головну гілку публічного репозиторію
-          folder: . # Беремо всі файли з поточного приватного репозиторію
-          clean: true
-
-      # 4. Публікуємо актуальний реліз вебдодатка разом із створеним архівом у ПУБЛІЧНИЙ репозиторій
+      # 3. Публікуємо актуальний реліз вебдодатка разом із створеним архівом
       - name: Update GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          # Вказуємо шлях до нашого нового публічного репозиторію
-          repository: antiruskontrol/BanderiZZation-Release
-          
-          # Використовуємо наш згенерований раніше секрет замість стандартного токена
-          token: ${{ secrets.RELEASE_TOKEN }}
-          
           files: weather-ukraine-v${{ env.APP_VERSION }}.zip
           name: WeatherInUkraine Build v${{ env.APP_VERSION }}
           tag_name: latest
           make_latest: "true"
           prerelease: false
-          
-          # Оскільки ми перезаписуємо реліз "latest", цей параметр дозволить оновлювати файли
           overwrite: true 
-          
           body: |
             ## 🌤️ Актуальна стабільна збірка додатка WeatherInUkraine
             Поточна версія сторінки: **v${{ env.APP_VERSION }}** (WeatherScope Pro).
@@ -75,3 +56,5 @@ jobs:
             ### 📦 Інструкція:
             Цей архів містить повну резервну копію коду для версії **v${{ env.APP_VERSION }}**. 
             Ви можете завантажити його для локального тестування або розгортання вебсторінки на власному хостингу.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
