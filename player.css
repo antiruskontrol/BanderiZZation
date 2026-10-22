@@ -19,33 +19,129 @@
      коментарів (замість білої системної смуги).
 ===================================================================
 */
+/*
+===================================================================
+Версія:       1.0.2 (BanderiZZation! Hub — player.css)
+Дата, час:    2026-10-22
+Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
+-------------------------------------------------------------------
+Еволюція змін:
+ Зміни 1.0.0:
+  1. Стилі, винесені з kinoskop.html (v1.0.4): сітка карток, неон-плеєр,
+     блок коментарів під відео. Спільні для Кіноскопу та Мультфільмоскопу.
+  2. Класи вікна перейменовано (.player-modal/.player-box/.player-close),
+     щоб не конфліктувати з .modal-content/.close-btn зі style.css.
+  3. Вікно плеєра з'являється/зникає через opacity за --fade-time (1.2 с).
+  4. Кнопка «← До хабу» піднята над плеєром (z-index), прокрутка сторінки
+     під плеєром блокується.
+  5. Нові класи коментарів: .chat-comment* (без конфліктів зі style.css).
+ Зміни 1.0.1 відносно 1.0.0:
+  1. Тонка темна прокрутка в рожевому неоні для вікна плеєра та списку
+     коментарів (замість білої системної смуги).
+ Зміни 1.0.2 відносно 1.0.1 (Поточна версія):
+  1. Оновлено сітку карток (.movies-grid) та самі картки (.movie-card).
+     Тепер вони відображаються як постери з пропорціями 2:3.
+  2. Додано стилі для .poster-wrapper, .movie-poster, .movie-stats-overlay 
+     та .movie-text-block для коректного відображення картинок та тексту.
+  3. Додано рожевий неон при наведенні на картку фільму.
+===================================================================
+*/
 
-/* ---------- Сітка карток ---------- */
+/* ---------- Сітка карток-постерів ---------- */
 .movies-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 25px;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 20px;
     margin-top: 30px;
 }
+
+/* Картка фільму — прозорий контейнер без фону */
 .movie-card {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(0, 242, 254, 0.2);
-    border-radius: 12px;
-    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    background: transparent;
+    border: none;
+    padding: 0;
     text-align: left;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: transform 0.2s ease-in-out;
 }
+
 .movie-card:hover,
 .movie-card:focus-visible {
-    box-shadow: 0 0 15px rgba(0, 242, 254, 0.6);
-    border-color: rgba(0, 242, 254, 1);
-    transform: translateY(-3px);
+    transform: translateY(-5px);
     outline: none;
 }
-.movie-stats { font-family: monospace; font-size: 0.85rem; color: #00f2fe; margin-bottom: 5px; }
-.movie-title-card { font-size: 1.2rem; color: #fff; margin: 10px 0; text-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
-.movie-desc { font-size: 0.9rem; margin: 0; color: #cbd5e1; text-shadow: none; }
+
+/* Обгортка для постеру (тримає пропорції 2:3) */
+.poster-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: #0d0614; /* Темний фон, поки картинка вантажиться */
+    border: 1px solid rgba(255, 0, 127, 0.2); /* Тонкий рожевий обводок */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+/* Ефект підсвічування постеру при наведенні */
+.movie-card:hover .poster-wrapper,
+.movie-card:focus-visible .poster-wrapper {
+    border-color: #ff007f;
+    box-shadow: 0 0 20px rgba(255, 0, 127, 0.8), 0 0 40px rgba(255, 0, 127, 0.4);
+}
+
+/* Сама картинка постеру */
+.movie-poster {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Картинка заповнює блок без деформацій */
+}
+
+/* Статистика (👁️ | 🔥) поверх постеру */
+.movie-stats-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(13, 6, 20, 0.95), transparent);
+    padding: 10px 8px 6px 8px;
+    font-family: monospace;
+    font-size: 0.8rem;
+    color: #00f2fe;
+    text-shadow: 0 0 4px rgba(0, 242, 254, 0.6);
+}
+
+/* Текстовий блок під постером */
+.movie-text-block {
+    margin-top: 8px;
+    padding: 0 4px;
+}
+
+/* Назва фільму */
+.movie-title-card {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #fff;
+    margin: 0 0 3px 0;
+    text-shadow: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Режисер/рік/опис під назвою */
+.movie-desc {
+    font-size: 0.8rem;
+    margin: 0;
+    color: #94a3b8;
+    text-shadow: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
 /* ---------- Вікно плеєра ---------- */
 body.player-open { overflow: hidden; }
