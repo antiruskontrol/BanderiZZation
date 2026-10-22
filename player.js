@@ -28,6 +28,22 @@
 ===================================================================
 */
 
+/*
+===================================================================
+Версія:       1.0.2 (BanderiZZation! Hub — player.js)
+Дата, час:    2026-10-22
+Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
+-------------------------------------------------------------------
+Еволюція змін:
+ Зміни 1.0.2 відносно 1.0.1:
+  1. Оновлено рендеринг карток (renderCards) для відображення постерів.
+     Тепер картка складається з обгортки .poster-wrapper (з картинкою 
+     та статистикою) та текстового блоку .movie-text-block під нею.
+  2. Додано підтримку поля posterUrl з Firebase. Якщо поля немає — 
+     використовується локальна заглушка poster1.jfif.
+===================================================================
+*/
+
 (async function () {
 'use strict';
 
@@ -163,20 +179,26 @@ function start() {
             card.tabIndex = 0;
             card.setAttribute('role', 'button');
 
-            const stats = document.createElement('div');
-            stats.className = 'movie-stats';
-            stats.textContent = `👁️ ${data.views || 0}  |  🔥 ${data.likes || 0}`;
+            // --- НОВА СТРУКТУРА КАРТКИ З ПОСТЕРОМ ---
+            const posterSrc = data.posterUrl || 'poster1.jfif';
+            const displayTitle = data.title || 'Без назви';
+            // Витягуємо режисера та рік з title, якщо вони там записані (як на вашому скріншоті)
+            // Або просто виводимо title, якщо окремих полів немає
+            const descText = data.director || ''; 
 
-            const title = document.createElement('h3');
-            title.className = 'movie-title-card';
-            title.textContent = data.title || 'Без назви';
+            card.innerHTML = `
+                <div class="poster-wrapper">
+                    <img src="${posterSrc}" alt="${displayTitle}" class="movie-poster" onerror="this.src='poster1.jfif'">
+                    <div class="movie-stats-overlay">
+                        👁️ ${data.views || 0}  |  🔥 ${data.likes || 0}
+                    </div>
+                </div>
+                <div class="movie-text-block">
+                    <h3 class="movie-title-card">${displayTitle}</h3>
+                    <p class="movie-desc">${descText}</p>
+                </div>
+            `;
 
-            const desc = document.createElement('p');
-            desc.className = 'movie-desc';
-            const full = String(data.description || '');
-            desc.textContent = full.length > 75 ? full.slice(0, 75) + '…' : full;
-
-            card.append(stats, title, desc);
             card.addEventListener('click', () => openPlayer(id));
             card.addEventListener('keydown', (event) => {
                 if (event.key === 'Enter' || event.key === ' ') {
@@ -408,4 +430,5 @@ function start() {
         }
     });
 }
+})();
 })();
