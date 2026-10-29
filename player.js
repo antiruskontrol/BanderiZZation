@@ -1,36 +1,15 @@
 /*
 ===================================================================
-Версія:       1.0.2 (BanderiZZation! Hub — player.js)
-Дата, час:    2026-10-22
+Версія:       1.0.3 (BanderiZZation! Hub — player.js)
+Дата, час:    2026-10-29
 Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
 -------------------------------------------------------------------
 Еволюція змін:
- Зміни 1.0.0:
-  1. Спільна логіка для Кіноскопу (колекція movies) та Мультфільмоскопу
-     (колекція cartoons). Колекція береться з <body data-collection="...">.
-  2. ВИПРАВЛЕНО: змінна unsubscribeComments не була оголошена, через що
-     коментарі не завантажувались, а лайк/закриття плеєра падали з помилкою.
-  3. Коментарі прив'язані до фільму назавжди: підколекція
-     {колекція}/{id фільму}/comments (замість мітки в тексті загальної
-     колекції comments). Останні 50, нові зверху, живе оновлення.
-  4. Пошта в списку замаскована; повна пошта — у закритій comment_emails.
-  5. Безпека: усе виводиться через textContent (було innerHTML — XSS),
-     відсутній опис не ламає картку, відео лише за https-посиланням.
-  6. Лайк запам'ятовується на фільм у localStorage (анти-накрутка).
-  7. Пауза 30 с між коментарями, поле-пастка від ботів.
-  8. Плеєр закривається: кнопкою ×, Esc, кліком повз вікно та при
-     переході на іншу сторінку (подія bz:leave) — відео зупиняється.
-  9. Дебаг-принти [BZ-PLAYER] з описом маркера спрацювання.
- Зміни 1.0.1 відносно 1.0.0:
-  1. Скрипт став звичайним (не type="module"), а Firebase підвантажується через
-     import(): сторінка тепер працює і при відкритті з диска (file://), де Chrome
-     блокує зовнішні модульні скрипти, і на GitHub Pages.
- Зміни 1.0.2 відносно 1.0.1 (Поточна версія):
-  1. Оновлено рендеринг карток (renderCards) для відображення постерів.
-     Тепер картка складається з обгортки .poster-wrapper (з картинкою 
-     та статистикою) та текстового блоку .movie-text-block під нею.
-  2. Додано підтримку поля posterUrl з Firebase. Якщо поля немає — 
-     використовується локальна заглушка poster1.jfif.
+ Зміни 1.0.3 відносно 1.0.2 (Поточна версія):
+  1. Інтегровано отримання тимчасових посилань (Presigned URL) з Backblaze B2.
+     При відкритті плеєра робиться запит до сервера на Render (/api/video-url).
+  2. У Firebase тепер потрібно зберігати назву файлу (наприклад, "vavylon.mp4") 
+     у полі videoFileName, замість повного посилання videoUrl.
 ===================================================================
 */
 
@@ -53,6 +32,9 @@ try {
 
 const TAG = '[BZ-PLAYER]';
 const dbg = (msg, ...rest) => console.log(`${TAG} ${msg}`, ...rest);
+
+// !!! ВАЖЛИВО: Замініть це на вашу реальну адресу сервера на Render !!!
+const BACKEND_URL = 'https://studio-copilot-backend.onrender.com'; 
 
 const COL = document.body.dataset.collection;
 const EMPTY_TEXT = document.body.dataset.empty || 'Поки що нічого немає...';
@@ -120,15 +102,6 @@ function start() {
         statusEl.className = 'chat-status' + (kind ? ' ' + kind : '');
     }
 
-    function safeVideoUrl(raw) {
-        try {
-            const url = new URL(raw);
-            return url.protocol === 'https:' ? url.href : '';
-        } catch (e) {
-            return '';
-        }
-    }
-
     function getLastSent() {
         try { return Number(localStorage.getItem(LAST_SENT_KEY)) || 0; } catch (e) { return 0; }
     }
@@ -143,6 +116,19 @@ function start() {
     }
     function saveLiked(list) {
         try { localStorage.setItem(LIKED_KEY, JSON.stringify(list)); } catch (e) { /* ігноруємо */ }
+    }
+
+    // ===== ОТРИМАННЯ ТИМЧАСОВОГО ПОСИЛАННЯ З RENDER =====
+    async function fetchVideoUrl(fileName) {
+        try {
+            const response = await fetch(`${BACKEND_URL}/api/video-url?file=${encodeURIComponent(fileName)}`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            return data.url;
+        } catch (error) {
+            dbg('ПОМИЛКА отримання тимчасового посилання:', error);
+            return null;
+        }
     }
 
     // ===== СПИСОК КАРТОК (живе оновлення) =====
@@ -172,7 +158,6 @@ function start() {
             // --- НОВА СТРУКТУРА КАРТКИ З ПОСТЕРОМ ---
             const posterSrc = data.posterUrl || 'poster1.jfif';
             const displayTitle = data.title || 'Без назви';
-            // Витягуємо опис (або виводимо пустий рядок, якщо його немає)
             const descText = data.director || data.description || ''; 
 
             card.innerHTML = `
@@ -275,22 +260,36 @@ function start() {
     }
 
     // ===== ВІДКРИТТЯ / ЗАКРИТТЯ ПЛЕЄРА =====
-    function openPlayer(id) {
+    async function openPlayer(id) {
         const data = itemsById.get(id);
         if (!data) return;
 
-        const videoUrl = safeVideoUrl(data.videoUrl);
-        if (!videoUrl) {
-            dbg(`МАРКЕР: у документа ${COL}/${id} немає коректного https-посилання videoUrl → плеєр не відкрито`);
+        // Отримуємо назву файлу з Firebase
+        const videoFileName = data.videoFileName; 
+        if (!videoFileName) {
+            dbg(`МАРКЕР: у документа ${COL}/${id} немає поля videoFileName → плеєр не відкрито`);
+            alert('Для цього фільму ще не завантажено відео.');
             return;
         }
 
-        activeId = id;
+        // Показуємо заголовок і опис одразу, поки вантажиться посилання
         titleEl.textContent = data.title || 'Без назви';
         descEl.textContent = data.description || '';
         viewsEl.textContent = data.views || 0;
         likesEl.textContent = data.likes || 0;
-        iframe.src = videoUrl;
+        iframe.src = 'about:blank'; // Очищаємо плеєр перед завантаженням
+
+        // Отримуємо тимчасове посилання з Render
+        dbg(`Запит тимчасового посилання для файлу: ${videoFileName}`);
+        const secureUrl = await fetchVideoUrl(videoFileName);
+
+        if (!secureUrl) {
+            alert('Не вдалося отримати доступ до відео. Спробуйте пізніше.');
+            return;
+        }
+
+        activeId = id;
+        iframe.src = secureUrl; // Вставляємо тимчасове посилання
 
         // Скидаємо форму коментарів
         emailInput.value = '';
