@@ -34,7 +34,7 @@ const TAG = '[BZ-PLAYER]';
 const dbg = (msg, ...rest) => console.log(`${TAG} ${msg}`, ...rest);
 
 // !!! ВАЖЛИВО: Замініть це на вашу реальну адресу сервера на Render !!!
-const BACKEND_URL = 'https://studio-copilot-backend.onrender.com'; 
+const BACKEND_URL = 'https://banderizzation-backend.onrender.com'; 
 
 const COL = document.body.dataset.collection;
 const EMPTY_TEXT = document.body.dataset.empty || 'Поки що нічого немає...';
