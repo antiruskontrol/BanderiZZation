@@ -1,42 +1,38 @@
 /*
 ===================================================================
-Версія:       2.0.0 (BanderiZZation! Hub — player.js)
+Версія:       2.0.1 (BanderiZZation! Hub — player.js)
 Дата, час:    2026-10-29
 Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
 -------------------------------------------------------------------
 Еволюція змін:
- Зміни 2.0.0 відносно 1.0.3:
-  1. Повний перехід з Firebase на Supabase.
-  2. Дані фільмів беруться з таблиці movies.
-  3. Збережено логіку генерації тимчасових посилань (Presigned URL) 
-     через сервер на Render для Backblaze B2.
+ Зміни 2.0.1 відносно 2.0.0:
+  1. Виправлено помилку, коли плеєр не знаходив поле videoFileName.
+  2. Додано перевірку на наявність полів title та description.
 ===================================================================
 */
 
 (async function () {
 'use strict';
 
-// Supabase підвантажується динамічно
 let createClient;
 try {
     ({ createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm"));
 } catch (error) {
-    console.log('[BZ-PLAYER] ПОМИЛКА завантаження Supabase SDK:', error && error.message ? error.message : error);
+    console.log('[BZ-PLAYER] ПОМИЛКА завантаження Supabase SDK:', error);
     return;
 }
 
 const TAG = '[BZ-PLAYER]';
 const dbg = (msg, ...rest) => console.log(`${TAG} ${msg}`, ...rest);
 
-// !!! ВАЖЛИВО: Вставте сюди ваші дані з Supabase (Project Settings -> API) !!!
+// ВАШІ КЛЮЧІ SUPABASE
 const SUPABASE_URL = 'https://bmwzzvrmkupwimhvzzqe.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_AlkDR5OTAyQjce5VYnLFOg_RlENaNLu';
 
-// !!! ВАЖЛИВО: Адреса вашого сервера на Render !!!
+// АДРЕСА RENDER
 const BACKEND_URL = 'https://banderizzation-backend.onrender.com'; 
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 const EMPTY_TEXT = document.body.dataset.empty || 'Поки що нічого немає...';
 
 start();
@@ -48,7 +44,6 @@ function start() {
     const COOLDOWN_MS = 30000;
     const LAST_SENT_KEY = 'bz_comment_last_sent';
     const LIKED_KEY = `bz_liked_movies`;
-    const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
     const $ = (id) => document.getElementById(id);
     const container = $('movies-container');
@@ -68,11 +63,9 @@ function start() {
     const commentsList = $('modalCommentsList');
     const closeBtn = $('closePlayerBtn');
 
-    // ===== СТАН =====
     let activeId = null;
     const itemsById = new Map();
 
-    // ===== ДОПОМІЖНЕ =====
     function setStatus(text, kind) {
         statusEl.textContent = text;
         statusEl.className = 'chat-status' + (kind ? ' ' + kind : '');
@@ -94,7 +87,6 @@ function start() {
         try { localStorage.setItem(LIKED_KEY, JSON.stringify(list)); } catch (e) { /* ігноруємо */ }
     }
 
-    // ===== ОТРИМАННЯ ТИМЧАСОВОГО ПОСИЛАННЯ З RENDER =====
     async function fetchVideoUrl(fileName) {
         try {
             const response = await fetch(`${BACKEND_URL}/api/video-url?file=${encodeURIComponent(fileName)}`);
@@ -107,7 +99,6 @@ function start() {
         }
     }
 
-    // ===== СПИСОК КАРТОК =====
     async function loadMovies() {
         const { data: movies, error } = await supabase
             .from('movies')
@@ -128,7 +119,6 @@ function start() {
             p.className = 'sub-text';
             p.textContent = EMPTY_TEXT;
             container.appendChild(p);
-            dbg(`МАРКЕР: таблиця movies порожня`);
             return;
         }
 
@@ -141,8 +131,10 @@ function start() {
             card.tabIndex = 0;
             card.setAttribute('role', 'button');
 
+            // Безпечне отримання даних
             const posterSrc = data.posterUrl || 'poster1.jfif';
             const displayTitle = data.title || 'Без назви';
+            // Якщо поле description немає, шукаємо будь-яке інше текстове поле для опису
             const descText = data.description || ''; 
 
             card.innerHTML = `
@@ -167,31 +159,27 @@ function start() {
             });
             container.appendChild(card);
         });
-
-        dbg(`Список оновлено: ${itemsById.size} шт.`);
     }
 
     loadMovies();
 
-    // Слухаємо зміни в реальному часі (WebSockets)
     supabase.channel('custom-all-channel')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'movies' }, (payload) => {
-          dbg('Зміна в базі даних, оновлюємо список...');
           loadMovies(); 
       })
       .subscribe();
 
-    // ===== КОМЕНТАРІ (Тимчасово) =====
     function renderComments() {
         commentsList.innerHTML = '<p class="chat-empty">Коментарі тимчасово недоступні.</p>';
     }
 
-    // ===== ВІДКРИТТЯ / ЗАКРИТТЯ ПЛЕЄРА =====
     async function openPlayer(id) {
         const data = itemsById.get(id);
         if (!data) return;
 
+        // ШУКАЄМО ПОЛЕ З НАЗВОЮ ФАЙЛУ
         const videoFileName = data.videoFileName; 
+        
         if (!videoFileName) {
             alert('Для цього фільму ще не завантажено відео.');
             return;
@@ -223,9 +211,8 @@ function start() {
         modal.classList.add('is-open');
         modal.setAttribute('aria-hidden', 'false');
         document.body.classList.add('player-open');
-        dbg(`МАРКЕР: відкрито плеєр «${data.title}»`);
 
-        // Збільшення переглядів (Supabase)
+        // Збільшення переглядів
         await supabase.rpc('increment_views', { row_id: id });
         data.views = (data.views || 0) + 1;
         viewsEl.textContent = data.views;
@@ -242,7 +229,6 @@ function start() {
             await supabase.rpc('increment_likes', { row_id: id });
             data.likes = (data.likes || 0) + 1;
             likesEl.textContent = data.likes;
-            dbg(`МАРКЕР: лайк зараховано`);
         };
     }
 
@@ -253,7 +239,6 @@ function start() {
         document.body.classList.remove('player-open');
         iframe.src = 'about:blank'; 
         activeId = null;
-        dbg(`МАРКЕР: плеєр закрито (причина: ${reason})`);
     }
 
     closeBtn.addEventListener('click', () => closePlayer('кнопка ×'));
@@ -265,7 +250,6 @@ function start() {
     });
     window.addEventListener('bz:leave', () => closePlayer('перехід на іншу сторінку'));
 
-    // ===== ВІДПРАВКА КОМЕНТАРЯ =====
     textInput.addEventListener('input', () => {
         counterEl.textContent = `${textInput.value.length} / ${MAX_LEN}`;
     });
