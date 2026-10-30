@@ -387,7 +387,7 @@ function start() {
         setStatus('Надсилаємо…', '');
 
         try {
-            const insertData = { email: email, text: text };
+            const insertData = { email: email, title: text };
             insertData[ID_COLUMN] = activeId;
 
             const { error } = await supabase
