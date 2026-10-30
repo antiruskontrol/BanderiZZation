@@ -68,7 +68,9 @@
             border-radius: 12px;
             padding: 15px;
             margin-top: 15px;
+            animation: fadeIn 0.5s;
         }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .uploaded-card h3 { margin: 0 0 10px 0; color: #facc15; font-size: 1rem; }
         .uploaded-card label { margin-top: 10px; font-size: 0.8rem; }
         .uploaded-card button {
@@ -81,8 +83,10 @@
             border-radius: 6px;
             font-weight: bold;
             cursor: pointer;
+            transition: background 0.2s;
         }
         .uploaded-card button:hover { background: #2563eb; }
+        .uploaded-card button:disabled { background: #475569; cursor: not-allowed; }
         .save-status { font-size: 0.8rem; text-align: center; margin-top: 5px; }
     </style>
 </head>
@@ -100,7 +104,7 @@
     <!-- Зона Drag & Drop -->
     <div id="dropZone">
         <p>Перетягніть відеофайли сюди</p>
-        <span>Можна вибрати відразу декілька</span>
+        <span>Можна вибрати відразу декілька (вони стануть у чергу)</span>
         <input type="file" id="videoFileInput" accept="video/*" multiple style="display: none;">
     </div>
 
@@ -138,12 +142,15 @@
     const progressText = document.getElementById('progressText');
     const cardsContainer = document.getElementById('uploadedCardsContainer');
 
+    let fileQueue = [];
+    let isProcessing = false;
+
     // === DRAG & DROP ===
     dropZone.addEventListener('click', () => fileInput.click());
     
     fileInput.addEventListener('change', (e) => { 
         if (e.target.files.length > 0) {
-            Array.from(e.target.files).forEach(file => handleFileUpload(file));
+            addFilesToQueue(Array.from(e.target.files));
         }
     });
 
@@ -153,18 +160,37 @@
         e.preventDefault();
         dropZone.style.background = 'rgba(59, 130, 246, 0.05)';
         if (e.dataTransfer.files.length > 0) {
-            Array.from(e.dataTransfer.files).forEach(file => handleFileUpload(file));
+            addFilesToQueue(Array.from(e.dataTransfer.files));
         }
     });
 
-    // === ЗАВАНТАЖЕННЯ ТА СТВОРЕННЯ КАРТКИ ===
-    async function handleFileUpload(file) {
-        if (!file.type.startsWith('video/')) return;
+    function addFilesToQueue(files) {
+        const validFiles = files.filter(f => f.type.startsWith('video/'));
+        if (validFiles.length === 0) return alert('Будь ласка, виберіть відеофайли.');
 
+        fileQueue.push(...validFiles);
+        progressText.textContent = `У черзі: ${fileQueue.length} файлів...`;
         progressContainer.style.display = 'block';
+        
+        if (!isProcessing) processQueue();
+    }
+
+    // === ЧЕРГА ЗАВАНТАЖЕННЯ ===
+    async function processQueue() {
+        if (fileQueue.length === 0) {
+            isProcessing = false;
+            progressText.textContent = 'Усі файли успішно оброблено!';
+            progressBar.style.width = '100%';
+            setTimeout(() => { progressContainer.style.display = 'none'; }, 3000);
+            return;
+        }
+
+        isProcessing = true;
+        const file = fileQueue.shift();
+        
         progressBar.style.width = '0%';
         progressBar.style.background = '#22c55e';
-        progressText.textContent = `Завантажуємо: ${file.name}`;
+        progressText.textContent = `Залишилось: ${fileQueue.length}. Завантажуємо: ${file.name}`;
 
         const formData = new FormData();
         formData.append('video', file);
@@ -185,11 +211,9 @@
             xhr.onload = async () => {
                 if (xhr.status === 200) {
                     const response = JSON.parse(xhr.responseText);
-                    
-                    // Автоматична назва
                     let cleanTitle = file.name.replace(/\.mp4$/i, '').replace(/_nologo$/i, '').replace(/_/g, ' ').trim();
 
-                    // Створюємо запис у Supabase і ОДРАЗУ отримуємо його ID
+                    // Створюємо запис і отримуємо ID
                     const tableName = contentTypeSelect.value;
                     const { data, error } = await supabase
                         .from(tableName)
@@ -201,7 +225,7 @@
                             views: 0,
                             likes: 0
                         }])
-                        .select(); // .select() змушує Supabase повернути створений запис
+                        .select();
 
                     if (error) {
                         console.error('Помилка створення запису:', error);
@@ -209,19 +233,21 @@
                         progressBar.style.background = '#ef4444';
                     } else {
                         // Створюємо картку для редагування
-                        const newRecord = data[0];
-                        createEditCard(newRecord, tableName);
+                        createEditCard(data[0], tableName);
                         progressText.textContent = `Успішно завантажено: ${file.name}`;
                     }
                 } else {
                     progressText.textContent = `Помилка завантаження: ${xhr.status}`;
                     progressBar.style.background = '#ef4444';
                 }
+                // Запускаємо наступний файл у черзі
+                processQueue();
             };
 
             xhr.onerror = () => {
                 progressText.textContent = `Помилка мережі`;
                 progressBar.style.background = '#ef4444';
+                processQueue(); // Продовжуємо чергу навіть при помилці
             };
 
             xhr.send(formData);
@@ -230,6 +256,7 @@
             console.error(error);
             progressText.textContent = 'Помилка: ' + error.message;
             progressBar.style.background = '#ef4444';
+            processQueue();
         }
     }
 
@@ -252,7 +279,6 @@
             <div class="save-status"></div>
         `;
 
-        // Логіка збереження для конкретної картки
         const saveBtn = card.querySelector('.save-btn');
         const statusEl = card.querySelector('.save-status');
         const descInput = card.querySelector('.edit-desc');
@@ -275,14 +301,16 @@
                 console.error('Помилка оновлення:', error);
                 statusEl.textContent = 'Помилка збереження';
                 statusEl.style.color = '#f87171';
+                saveBtn.disabled = false;
             } else {
                 statusEl.textContent = 'Успішно збережено!';
                 statusEl.style.color = '#22c55e';
-                saveBtn.disabled = false;
+                // Кнопку залишаємо disabled, щоб уникнути повторних натискань
             }
         });
 
-        cardsContainer.appendChild(card);
+        // Додаємо нову картку на початок списку
+        cardsContainer.prepend(card);
     }
 </script>
 
