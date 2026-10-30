@@ -1,15 +1,13 @@
 /*
 ===================================================================
-Версія:       2.2.0 (BanderiZZation! Hub — player.js)
+Версія:       2.2.1 (BanderiZZation! Hub — player.js)
 Дата, час:    2026-10-30
 Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
 -------------------------------------------------------------------
 Еволюція змін:
- Зміни 2.2.0 відносно 2.1.0:
-  1. Скрипт став універсальним: автоматично визначає, з якою таблицею
-     працювати (movies/comments або cartoons/cartoon_comments), 
-     спираючись на атрибут data-collection у тегу <body>.
-  2. Додано підтримку коментарів для мультфільмів.
+ Зміни 2.2.1 відносно 2.2.0:
+  1. Додано функцію cleanTitle для очищення назв від технологічних
+     позначок (nologo, delogo, logo, розширень файлів).
 ===================================================================
 */
 
@@ -27,22 +25,18 @@ try {
 const TAG = '[BZ-PLAYER]';
 const dbg = (msg, ...rest) => console.log(`${TAG} ${msg}`, ...rest);
 
-// ВАШІ КЛЮЧІ SUPABASE
 const SUPABASE_URL = 'https://bmwzzvrmkupwimhvzzqe.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_AlkDR5OTAyQjce5VYnLFOg_RlENaNLu';
-
-// АДРЕСА RENDER
 const BACKEND_URL = 'https://banderizzation-backend.onrender.com'; 
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const EMPTY_TEXT = document.body.dataset.empty || 'Поки що нічого немає...';
 
-// Визначаємо, з якими таблицями працювати
 const COLLECTION = document.body.dataset.collection || 'movies';
 const IS_CARTOON = COLLECTION === 'cartoons';
 const TABLE_MOVIES = IS_CARTOON ? 'cartoons' : 'movies';
 const TABLE_COMMENTS = IS_CARTOON ? 'cartoon_comments' : 'comments';
-const ID_COLUMN = IS_CARTOON ? 'cartoon_id' : 'movie_id'; // Назва колонки для зв'язку
+const ID_COLUMN = IS_CARTOON ? 'cartoon_id' : 'movie_id';
 
 start();
 
@@ -75,6 +69,17 @@ function start() {
 
     let activeId = null;
     const itemsById = new Map();
+
+    // === ФУНКЦІЯ ОЧИЩЕННЯ НАЗВИ ===
+    function cleanTitle(rawTitle) {
+        if (!rawTitle) return 'Без назви';
+        return rawTitle
+            .replace(/\.(mp4|mkv|avi|mov)$/i, '') // Прибираємо розширення
+            .replace(/[_\s-]*(no|de)?logo[_\s-]*/gi, '') // Прибираємо logo, nologo, delogo
+            .replace(/_/g, ' ') // Замінюємо підкреслення на пробіли
+            .replace(/^\s+|\s+$/g, '') // Прибираємо пробіли на початку та в кінці
+            .replace(/\s+/g, ' '); // Прибираємо подвійні пробіли
+    }
 
     function maskEmail(email) {
         const [local, domain] = email.split('@');
@@ -149,7 +154,7 @@ function start() {
             card.setAttribute('role', 'button');
 
             const posterSrc = data.posterUrl || 'poster1.jfif';
-            const displayTitle = data.title || 'Без назви';
+            const displayTitle = cleanTitle(data.title); // Використовуємо очищену назву
             const descText = data.description || ''; 
 
             card.innerHTML = `
@@ -193,7 +198,7 @@ function start() {
         const { data: comments, error } = await supabase
             .from(TABLE_COMMENTS)
             .select('*')
-            .eq(ID_COLUMN, movieId) // Використовуємо динамічну назву колонки
+            .eq(ID_COLUMN, movieId)
             .order('created_at', { ascending: false });
 
         if (error) {
@@ -237,14 +242,13 @@ function start() {
             commentsList.appendChild(item);
         });
 
-        // Підписка на нові коментарі
         if (commentChannel) supabase.removeChannel(commentChannel);
         commentChannel = supabase.channel(`comments-channel-${TABLE_COMMENTS}`)
             .on('postgres_changes', { 
                 event: 'INSERT', 
                 schema: 'public', 
                 table: TABLE_COMMENTS,
-                filter: `${ID_COLUMN}=eq.${movieId}` // Динамічний фільтр
+                filter: `${ID_COLUMN}=eq.${movieId}`
             }, (payload) => {
                 loadComments(movieId);
             })
@@ -263,7 +267,7 @@ function start() {
             return;
         }
 
-        titleEl.textContent = data.title || 'Без назви';
+        titleEl.textContent = cleanTitle(data.title); // Очищена назва в плеєрі
         descEl.textContent = data.description || '';
         viewsEl.textContent = data.views || 0;
         likesEl.textContent = data.likes || 0;
@@ -291,13 +295,11 @@ function start() {
 
         loadComments(id);
 
-        // Збільшення переглядів
         const viewRpc = IS_CARTOON ? 'increment_cartoon_views' : 'increment_views';
         await supabase.rpc(viewRpc, { row_id: id });
         data.views = (data.views || 0) + 1;
         viewsEl.textContent = data.views;
 
-        // Лайк
         const alreadyLiked = getLiked().includes(id);
         likeBtn.disabled = alreadyLiked;
         likeBtn.onclick = async () => {
@@ -337,7 +339,6 @@ function start() {
     });
     window.addEventListener('bz:leave', () => closePlayer('перехід на іншу сторінку'));
 
-    // ===== ВІДПРАВКА КОМЕНТАРЯ =====
     textInput.addEventListener('input', () => {
         counterEl.textContent = `${textInput.value.length} / ${MAX_LEN}`;
     });
@@ -379,11 +380,7 @@ function start() {
         setStatus('Надсилаємо…', '');
 
         try {
-            // Формуємо об'єкт для вставки з динамічною назвою колонки
-            const insertData = { 
-                email: email, 
-                text: text 
-            };
+            const insertData = { email: email, text: text };
             insertData[ID_COLUMN] = activeId;
 
             const { error } = await supabase
