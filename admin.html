@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Адмін-панель — BanderiZZation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0b0f19;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .admin-container {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid #3b82f6;
+            border-radius: 16px;
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+            display: none; /* Приховано за замовчуванням */
+        }
+        h2 { text-align: center; color: #38ff3b; margin-bottom: 20px; }
+        label { display: block; margin-top: 15px; margin-bottom: 5px; color: #93c5fd; font-size: 0.9rem; }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            box-sizing: border-box;
+        }
+        input:focus, textarea:focus { outline: none; border-color: #22c55e; box-shadow: 0 0 10px rgba(34, 197, 94, 0.5); }
+        button {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            background: #16a34a;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover { background: #22c55e; }
+        .status { margin-top: 15px; text-align: center; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+<div class="admin-container" id="adminPanel">
+    <h2>🎬 Додати новий фільм</h2>
+    
+    <label for="title">Назва фільму</label>
+    <input type="text" id="title" placeholder="Наприклад: Вавилон XX">
+
+    <label for="description">Опис</label>
+    <textarea id="description" rows="3" placeholder="Короткий опис фільму..."></textarea>
+
+    <label for="posterUrl">Посилання на постер (URL)</label>
+    <input type="text" id="posterUrl" placeholder="https://raw.githubusercontent.com/.../poster.jpg">
+
+    <label for="videoFileName">Назва відеофайлу в Backblaze</label>
+    <input type="text" id="videoFileName" placeholder="Наприклад: cat.mp4">
+
+    <button id="saveBtn">Зберегти фільм у базу</button>
+    <div class="status" id="status"></div>
+</div>
+
+<script type="module">
+    // === ПЕРЕВІРКА ПАРОЛЯ ===
+    const CORRECT_PASSWORD = "9969";
+    let enteredPassword = prompt("Введіть пароль для доступу до адмін-панелі:");
+
+    if (enteredPassword === CORRECT_PASSWORD) {
+        document.getElementById('adminPanel').style.display = 'block';
+        document.body.style.backgroundColor = '#0b0f19';
+    } else {
+        // Якщо пароль неправильний, показуємо порожній екран
+        document.body.innerHTML = "<h1 style='color:red; text-align:center; margin-top:20%;'>Доступ заборонено</h1>";
+        throw new Error("Неправильний пароль");
+    }
+
+    // === ЛОГІКА ДОДАВАННЯ ФІЛЬМУ ===
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+    // ВАШІ КЛЮЧІ SUPABASE
+    const SUPABASE_URL = 'https://bmwzzvrmkupwimhvzzqe.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_AlkDR5OTAyQjce5VYnLFOg_RlENaNLu';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const saveBtn = document.getElementById('saveBtn');
+    const statusDiv = document.getElementById('status');
+
+    saveBtn.addEventListener('click', async () => {
+        const title = document.getElementById('title').value.trim();
+        const description = document.getElementById('description').value.trim();
+        const posterUrl = document.getElementById('posterUrl').value.trim();
+        const videoFileName = document.getElementById('videoFileName').value.trim();
+
+        if (!title || !videoFileName) {
+            statusDiv.textContent = 'Заповніть хоча б Назву та Назву відеофайлу!';
+            statusDiv.style.color = '#f87171';
+            return;
+        }
+
+        saveBtn.disabled = true;
+        statusDiv.textContent = 'Зберігаємо...';
+        statusDiv.style.color = '#fff';
+
+        const { data, error } = await supabase
+            .from('movies')
+            .insert([
+                { 
+                    title: title, 
+                    description: description, 
+                    posterUrl: posterUrl, 
+                    videoFileName: videoFileName,
+                    views: 0,
+                    likes: 0
+                }
+            ]);
+
+        if (error) {
+            console.error(error);
+            statusDiv.textContent = 'Помилка: ' + error.message;
+            statusDiv.style.color = '#f87171';
+        } else {
+            statusDiv.textContent = 'Успішно додано!';
+            statusDiv.style.color = '#22c55e';
+            // Очищаємо форму
+            document.getElementById('title').value = '';
+            document.getElementById('description').value = '';
+            document.getElementById('posterUrl').value = '';
+            document.getElementById('videoFileName').value = '';
+        }
+        saveBtn.disabled = false;
+    });
+</script>
+
+</body>
+</html>
