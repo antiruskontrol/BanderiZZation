@@ -25,11 +25,11 @@
             width: 100%;
             max-width: 500px;
             box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
-            display: none;
+            display: none; /* Приховано за замовчуванням */
         }
         h2 { text-align: center; color: #38ff3b; margin-bottom: 20px; }
         label { display: block; margin-top: 15px; margin-bottom: 5px; color: #93c5fd; font-size: 0.9rem; }
-        input, textarea {
+        input, textarea, select {
             width: 100%;
             padding: 10px;
             border-radius: 8px;
@@ -38,7 +38,7 @@
             color: #fff;
             box-sizing: border-box;
         }
-        input:focus, textarea:focus { outline: none; border-color: #22c55e; box-shadow: 0 0 10px rgba(34, 197, 94, 0.5); }
+        select:focus, input:focus, textarea:focus { outline: none; border-color: #22c55e; box-shadow: 0 0 10px rgba(34, 197, 94, 0.5); }
         button {
             margin-top: 20px;
             width: 100%;
@@ -76,13 +76,19 @@
 <body>
 
 <div class="admin-container" id="adminPanel">
-    <h2>🎬 Додати новий фільм</h2>
+    <h2>🎬 Додати новий контент</h2>
     
-    <label for="title">Назва фільму</label>
+    <label for="contentType">Тип контенту</label>
+    <select id="contentType">
+        <option value="movies">Фільм (Кіноскоп)</option>
+        <option value="cartoons">Мультфільм (Мультоскоп)</option>
+    </select>
+
+    <label for="title">Назва</label>
     <input type="text" id="title" placeholder="Наприклад: Вавилон XX">
 
     <label for="description">Опис</label>
-    <textarea id="description" rows="3" placeholder="Короткий опис фільму..."></textarea>
+    <textarea id="description" rows="3" placeholder="Короткий опис..."></textarea>
 
     <label for="posterUrl">Посилання на постер (URL)</label>
     <input type="text" id="posterUrl" placeholder="https://raw.githubusercontent.com/.../poster.jpg">
@@ -105,7 +111,7 @@
     <label for="videoFileName">Назва відеофайлу в Backblaze</label>
     <input type="text" id="videoFileName" placeholder="Заповниться автоматично після завантаження">
 
-    <button id="saveBtn">Зберегти фільм у базу</button>
+    <button id="saveBtn">Зберегти в базу</button>
     <div class="status" id="status"></div>
 </div>
 
@@ -127,6 +133,10 @@
     const SUPABASE_ANON_KEY = 'sb_publishable_AlkDR5OTAyQjce5VYnLFOg_RlENaNLu';
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    const contentTypeSelect = document.getElementById('contentType');
+    const saveBtn = document.getElementById('saveBtn');
+    const statusDiv = document.getElementById('status');
+
     // === DRAG & DROP ТА ЗАВАНТАЖЕННЯ ===
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('videoFileInput');
@@ -147,78 +157,74 @@
     });
 
     async function handleFileUpload(file) {
-    if (!file.type.startsWith('video/')) {
-        alert('Будь ласка, виберіть відеофайл.');
-        return;
-    }
+        if (!file.type.startsWith('video/')) {
+            alert('Будь ласка, виберіть відеофайл.');
+            return;
+        }
 
-    progressContainer.style.display = 'block';
-    progressBar.style.width = '0%';
-    progressText.textContent = 'Завантажуємо на сервер...';
-    dropZone.style.pointerEvents = 'none';
+        progressContainer.style.display = 'block';
+        progressBar.style.width = '0%';
+        progressText.textContent = 'Завантажуємо на сервер...';
+        dropZone.style.pointerEvents = 'none';
 
-    const formData = new FormData();
-    formData.append('video', file);
-    formData.append('fileName', file.name);
+        const formData = new FormData();
+        formData.append('video', file);
+        formData.append('fileName', file.name);
 
-    try {
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', 'https://banderizzation-backend.onrender.com/api/upload-video', true);
+        try {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'https://banderizzation-backend.onrender.com/api/upload-video', true);
 
-        xhr.upload.onprogress = (event) => {
-            if (event.lengthComputable) {
-                const percent = Math.round((event.loaded / event.total) * 100);
-                progressBar.style.width = percent + '%';
-                progressText.textContent = percent + '%';
-            }
-        };
+            xhr.upload.onprogress = (event) => {
+                if (event.lengthComputable) {
+                    const percent = Math.round((event.loaded / event.total) * 100);
+                    progressBar.style.width = percent + '%';
+                    progressText.textContent = percent + '%';
+                }
+            };
 
-        xhr.onload = () => {
-            if (xhr.status === 200) {
-                const response = JSON.parse(xhr.responseText);
-                progressText.textContent = 'Успішно завантажено!';
-                progressBar.style.background = '#22c55e';
-                // Беремо назву файлу, яку повернув сервер
-const rawName = response.fileName;
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    progressText.textContent = 'Успішно завантажено!';
+                    progressBar.style.background = '#22c55e';
+                    videoFileNameInput.value = response.fileName;
+                    
+                    // Автозаповнення назви
+                    let cleanTitle = response.fileName
+                        .replace(/\.mp4$/i, '')
+                        .replace(/_nologo$/i, '')
+                        .replace(/_/g, ' ')
+                        .trim();
+                    document.getElementById('title').value = cleanTitle;
 
-// Очищаємо назву для поля "Назва фільму"
-let cleanTitle = rawName
-    .replace(/\.mp4$/i, '')        // Прибираємо розширення .mp4
-    .replace(/_nologo$/i, '')       // Прибираємо _nologo
-    .replace(/_/g, ' ')             // Замінюємо всі підкреслення на пробіли
-    .trim();                        // Прибираємо зайві пробіли з країв
+                    dropZone.style.pointerEvents = 'auto';
+                } else {
+                    progressText.textContent = 'Помилка сервера: ' + xhr.status;
+                    progressBar.style.background = '#ef4444';
+                    dropZone.style.pointerEvents = 'auto';
+                }
+            };
 
-// Заповнюємо поля
-videoFileNameInput.value = rawName;
-document.getElementById('title').value = cleanTitle; // <-- Автозаповнення назви
-                dropZone.style.pointerEvents = 'auto';
-            } else {
-                progressText.textContent = 'Помилка сервера: ' + xhr.status;
+            xhr.onerror = () => {
+                progressText.textContent = 'Помилка мережі';
                 progressBar.style.background = '#ef4444';
                 dropZone.style.pointerEvents = 'auto';
-            }
-        };
+            };
 
-        xhr.onerror = () => {
-            progressText.textContent = 'Помилка мережі';
+            xhr.send(formData);
+
+        } catch (error) {
+            console.error(error);
+            progressText.textContent = 'Помилка: ' + error.message;
             progressBar.style.background = '#ef4444';
             dropZone.style.pointerEvents = 'auto';
-        };
-
-        xhr.send(formData);
-
-    } catch (error) {
-        console.error(error);
-        progressText.textContent = 'Помилка: ' + error.message;
-        progressBar.style.background = '#ef4444';
-        dropZone.style.pointerEvents = 'auto';
+        }
     }
-}
-    // === ЗБЕРЕЖЕННЯ ФІЛЬМУ В БАЗУ ===
-    const saveBtn = document.getElementById('saveBtn');
-    const statusDiv = document.getElementById('status');
 
+    // === ЗБЕРЕЖЕННЯ В БАЗУ ===
     saveBtn.addEventListener('click', async () => {
+        const tableName = contentTypeSelect.value; // 'movies' або 'cartoons'
         const title = document.getElementById('title').value.trim();
         const description = document.getElementById('description').value.trim();
         const posterUrl = document.getElementById('posterUrl').value.trim();
@@ -235,7 +241,7 @@ document.getElementById('title').value = cleanTitle; // <-- Автозаповн
         statusDiv.style.color = '#fff';
 
         const { error } = await supabase
-            .from('movies')
+            .from(tableName)
             .insert([{ 
                 title: title, 
                 description: description, 
@@ -250,14 +256,14 @@ document.getElementById('title').value = cleanTitle; // <-- Автозаповн
             statusDiv.textContent = 'Помилка: ' + error.message;
             statusDiv.style.color = '#f87171';
         } else {
-            statusDiv.textContent = 'Успішно додано!';
+            statusDiv.textContent = `Успішно додано в ${tableName === 'movies' ? 'Кіноскоп' : 'Мультоскоп'}!`;
             statusDiv.style.color = '#22c55e';
             // Очищаємо форму
             document.getElementById('title').value = '';
             document.getElementById('description').value = '';
             document.getElementById('posterUrl').value = '';
             document.getElementById('videoFileName').value = '';
-            progressContainer.style.display = 'none'; // Ховаємо прогрес
+            progressContainer.style.display = 'none';
         }
         saveBtn.disabled = false;
     });
