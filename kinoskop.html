@@ -1,14 +1,13 @@
 <!--
 ===================================================================
-Версія:       1.0.7 (BanderiZZation! Hub — kinoskop.html)
-Дата, час:    2026-10-29
+Версія:       1.0.8 (BanderiZZation! Hub — kinoskop.html)
+Дата, час:    2026-10-30
 Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
 -------------------------------------------------------------------
 Еволюція змін:
- Зміни 1.0.7 відносно 1.0.6 (Поточна версія):
-  1. Оновлено для роботи з приватним сховищем Backblaze B2.
-     Тепер плеєр запитує тимчасове посилання (Presigned URL) 
-     у сервера на Render, замість прямого використання посилання з Firebase.
+ Зміни 1.0.8 відносно 1.0.7 (Поточна версія):
+  1. Додано кнопку-шестерню (⚙️) у верхню панель для швидкого 
+     доступу до адмін-панелі (admin.html).
 ===================================================================
 -->
 <!DOCTYPE html>
@@ -80,5 +79,34 @@
 
     <script src="common.js"></script>
     <script src="player.js"></script>
+
+    <!-- Скрипт для додавання шестерні в меню -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // Чекаємо трохи, поки common.js згенерує панель
+            setTimeout(() => {
+                const controls = document.querySelector('.top-controls');
+                if (controls) {
+                    // Створюємо посилання-шестерню
+                    const adminLink = document.createElement('a');
+                    adminLink.href = 'admin.html';
+                    adminLink.innerHTML = '⚙️';
+                    adminLink.title = 'Адмін-панель';
+                    
+                    // Стилізуємо її так само, як інші кнопки (використовуємо клас control-badge)
+                    adminLink.className = 'control-badge';
+                    adminLink.style.textDecoration = 'none';
+                    adminLink.style.display = 'flex';
+                    adminLink.style.alignItems = 'center';
+                    adminLink.style.justifyContent = 'center';
+                    adminLink.style.padding = '0.2rem 0.6rem';
+                    adminLink.style.fontSize = '1rem';
+                    
+                    // Додаємо в кінець панелі керування
+                    controls.appendChild(adminLink);
+                }
+            }, 100); // Невелика затримка для впевненості
+        });
+    </script>
 </body>
 </html>
