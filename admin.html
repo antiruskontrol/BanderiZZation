@@ -27,7 +27,25 @@
             box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
             display: none;
         }
-        h2 { text-align: center; color: #38ff3b; margin-bottom: 20px; }
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        h2 { margin: 0; color: #38ff3b; }
+        .btn-manage {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-manage:hover { background: #b91c1c; }
+        
         label { display: block; margin-top: 15px; margin-bottom: 5px; color: #93c5fd; font-size: 0.9rem; }
         select, input, textarea {
             width: 100%;
@@ -40,7 +58,6 @@
         }
         select:focus, input:focus, textarea:focus { outline: none; border-color: #22c55e; box-shadow: 0 0 10px rgba(34, 197, 94, 0.5); }
         
-        /* Зона Drag & Drop */
         #dropZone {
             border: 2px dashed #3b82f6;
             border-radius: 12px;
@@ -55,13 +72,11 @@
         #dropZone p { margin: 0; color: #93c5fd; font-size: 1.1rem; }
         #dropZone span { font-size: 0.85rem; color: #64748b; display: block; margin-top: 5px; }
         
-        /* Прогрес-бар */
         #uploadProgress { display: none; margin-top: 10px; }
         .progress-bg { background: #1e293b; border-radius: 8px; overflow: hidden; height: 20px; }
         #progressBar { background: #22c55e; width: 0%; height: 100%; transition: width 0.3s; }
         #progressText { text-align: center; font-size: 0.9rem; margin-top: 8px; color: #cbd5e1; }
 
-        /* Картки завантажених файлів */
         .uploaded-card {
             background: rgba(30, 41, 59, 0.8);
             border: 1px solid #475569;
@@ -73,27 +88,62 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .uploaded-card h3 { margin: 0 0 10px 0; color: #facc15; font-size: 1rem; }
         .uploaded-card label { margin-top: 10px; font-size: 0.8rem; }
-        .uploaded-card button {
-            margin-top: 10px;
-            width: 100%;
-            padding: 8px;
-            background: #3b82f6;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .uploaded-card button:hover { background: #2563eb; }
-        .uploaded-card button:disabled { background: #475569; cursor: not-allowed; }
+        
+        .card-actions { display: flex; gap: 10px; margin-top: 10px; }
+        .card-actions button { flex: 1; padding: 8px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        .btn-save { background: #3b82f6; color: white; }
+        .btn-save:hover { background: #2563eb; }
         .save-status { font-size: 0.8rem; text-align: center; margin-top: 5px; }
+
+        /* --- Стилі для модального вікна --- */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); z-index: 1000; justify-content: center; align-items: center;
+        }
+        .modal-window {
+            background: #1e293b; border: 1px solid #3b82f6; border-radius: 12px;
+            width: 80%; max-width: 600px; height: 70vh; display: flex; flex-direction: column;
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.5); resize: both; overflow: hidden;
+        }
+        .modal-header {
+            background: #0f172a; padding: 10px 15px; display: flex; justify-content: space-between;
+            align-items: center; border-bottom: 1px solid #3b82f6; cursor: move;
+        }
+        .modal-title { color: #facc15; font-weight: bold; }
+        .window-controls { display: flex; gap: 10px; }
+        .window-controls button {
+            background: transparent; border: none; color: #fff; font-size: 1.2rem; cursor: pointer; padding: 0 5px;
+        }
+        .window-controls button:hover { color: #3b82f6; }
+        
+        .modal-body { padding: 15px; overflow-y: auto; flex: 1; }
+        .file-list { list-style: none; padding: 0; margin: 0; }
+        .file-item {
+            display: flex; align-items: center; padding: 8px; border-bottom: 1px solid #334155;
+            transition: background 0.2s; cursor: pointer;
+        }
+        .file-item:hover { background: #334155; }
+        .file-item input[type="checkbox"] { margin-right: 15px; width: 18px; height: 18px; cursor: pointer; }
+        .file-info { flex: 1; }
+        .file-info strong { display: block; color: #fff; }
+        .file-info span { font-size: 0.8rem; color: #94a3b8; }
+        
+        .modal-footer {
+            padding: 15px; border-top: 1px solid #3b82f6; display: flex; justify-content: flex-end; gap: 10px;
+        }
+        .modal-footer button { padding: 8px 20px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-cancel { background: #475569; color: white; }
+        .btn-delete-selected { background: #ef4444; color: white; }
+        .btn-delete-selected:hover { background: #b91c1c; }
     </style>
 </head>
 <body>
 
 <div class="admin-container" id="adminPanel">
-    <h2>📦 Завантаження контенту</h2>
+    <div class="header-actions">
+        <h2>📦 Завантаження контенту</h2>
+        <button class="btn-manage" id="openManageBtn">🗑️ Керування файлами</button>
+    </div>
     
     <label for="contentType">Тип контенту</label>
     <select id="contentType">
@@ -101,7 +151,6 @@
         <option value="cartoons">Мультфільм (Мультоскоп)</option>
     </select>
 
-    <!-- Зона Drag & Drop -->
     <div id="dropZone">
         <p>Перетягніть відеофайли сюди</p>
         <span>Можна вибрати відразу декілька (вони стануть у чергу)</span>
@@ -115,8 +164,29 @@
         <p id="progressText">0%</p>
     </div>
 
-    <!-- Сюди додаватимуться картки -->
     <div id="uploadedCardsContainer"></div>
+</div>
+
+<!-- Модальне вікно керування файлами -->
+<div class="modal-overlay" id="manageModal">
+    <div class="modal-window" id="modalWindow">
+        <div class="modal-header" id="modalHeader">
+            <div class="modal-title">Керування файлами</div>
+            <div class="window-controls">
+                <button id="minimizeBtn" title="Згорнути">_</button>
+                <button id="maximizeBtn" title="Розгорнути">□</button>
+                <button id="closeModalBtn" title="Закрити">✕</button>
+            </div>
+        </div>
+        <div class="modal-body">
+            <p id="modalStatus" style="color: #94a3b8; margin-top: 0;">Завантаження списку...</p>
+            <ul class="file-list" id="fileList"></ul>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-cancel" id="cancelModalBtn">Скасувати</button>
+            <button class="btn-delete-selected" id="deleteSelectedBtn">Видалити обрані</button>
+        </div>
+    </div>
 </div>
 
 <script type="module">
@@ -128,190 +198,141 @@
     }
     document.getElementById('adminPanel').style.display = 'block';
 
-    // === SUPABASE ===
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
     const SUPABASE_URL = 'https://bmwzzvrmkupwimhvzzqe.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_AlkDR5OTAyQjce5VYnLFOg_RlENaNLu';
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const contentTypeSelect = document.getElementById('contentType');
-    const dropZone = document.getElementById('dropZone');
-    const fileInput = document.getElementById('videoFileInput');
-    const progressContainer = document.getElementById('uploadProgress');
-    const progressBar = document.getElementById('progressBar');
-    const progressText = document.getElementById('progressText');
-    const cardsContainer = document.getElementById('uploadedCardsContainer');
+    const openManageBtn = document.getElementById('openManageBtn');
+    const manageModal = document.getElementById('manageModal');
+    const modalWindow = document.getElementById('modalWindow');
+    const modalHeader = document.getElementById('modalHeader');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const cancelModalBtn = document.getElementById('cancelModalBtn');
+    const minimizeBtn = document.getElementById('minimizeBtn');
+    const maximizeBtn = document.getElementById('maximizeBtn');
+    const fileList = document.getElementById('fileList');
+    const modalStatus = document.getElementById('modalStatus');
+    const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
 
-    let fileQueue = [];
-    let isProcessing = false;
-
-    // === DRAG & DROP ===
-    dropZone.addEventListener('click', () => fileInput.click());
-    
-    fileInput.addEventListener('change', (e) => { 
-        if (e.target.files.length > 0) {
-            addFilesToQueue(Array.from(e.target.files));
-        }
+    // === КЕРУВАННЯ ВІКНОМ ===
+    openManageBtn.addEventListener('click', async () => {
+        manageModal.style.display = 'flex';
+        modalWindow.style.width = '80%';
+        modalWindow.style.height = '70vh';
+        await loadFilesForManagement();
     });
 
-    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.background = 'rgba(59, 130, 246, 0.2)'; });
-    dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.style.background = 'rgba(59, 130, 246, 0.05)'; });
-    dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropZone.style.background = 'rgba(59, 130, 246, 0.05)';
-        if (e.dataTransfer.files.length > 0) {
-            addFilesToQueue(Array.from(e.dataTransfer.files));
-        }
-    });
-
-    function addFilesToQueue(files) {
-        const validFiles = files.filter(f => f.type.startsWith('video/'));
-        if (validFiles.length === 0) return alert('Будь ласка, виберіть відеофайли.');
-
-        fileQueue.push(...validFiles);
-        progressText.textContent = `У черзі: ${fileQueue.length} файлів...`;
-        progressContainer.style.display = 'block';
-        
-        if (!isProcessing) processQueue();
+    function closeModal() {
+        manageModal.style.display = 'none';
+        fileList.innerHTML = '';
+        modalStatus.textContent = 'Завантаження списку...';
     }
 
-    // === ЧЕРГА ЗАВАНТАЖЕННЯ ===
-    async function processQueue() {
-        if (fileQueue.length === 0) {
-            isProcessing = false;
-            progressText.textContent = 'Усі файли успішно оброблено!';
-            progressBar.style.width = '100%';
-            setTimeout(() => { progressContainer.style.display = 'none'; }, 3000);
+    closeModalBtn.addEventListener('click', closeModal);
+    cancelModalBtn.addEventListener('click', closeModal);
+
+    let isMinimized = false;
+    minimizeBtn.addEventListener('click', () => {
+        isMinimized = !isMinimized;
+        modalWindow.style.height = isMinimized ? '50px' : '70vh';
+        minimizeBtn.textContent = isMinimized ? '□' : '_';
+    });
+
+    let isMaximized = false;
+    maximizeBtn.addEventListener('click', () => {
+        isMaximized = !isMaximized;
+        modalWindow.style.width = isMaximized ? '100%' : '80%';
+        modalWindow.style.height = isMaximized ? '100%' : '70vh';
+        modalWindow.style.borderRadius = isMaximized ? '0' : '12px';
+        maximizeBtn.textContent = isMaximized ? '❐' : '□';
+    });
+
+    // === ЛОГІКА ЗАВАНТАЖЕННЯ СПИСКУ ===
+    async function loadFilesForManagement() {
+        const tableName = contentTypeSelect.value;
+        modalStatus.textContent = 'Завантаження...';
+        fileList.innerHTML = '';
+
+        const { data, error } = await supabase
+            .from(tableName)
+            .select('id, title, videoFileName')
+            .order('title', { ascending: true });
+
+        if (error) {
+            modalStatus.textContent = 'Помилка завантаження списку.';
             return;
         }
 
-        isProcessing = true;
-        const file = fileQueue.shift();
-        
-        progressBar.style.width = '0%';
-        progressBar.style.background = '#22c55e';
-        progressText.textContent = `Залишилось: ${fileQueue.length}. Завантажуємо: ${file.name}`;
-
-        const formData = new FormData();
-        formData.append('video', file);
-        formData.append('fileName', file.name);
-
-        try {
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', 'https://banderizzation-backend.onrender.com/api/upload-video', true);
-
-            xhr.upload.onprogress = (event) => {
-                if (event.lengthComputable) {
-                    const percent = Math.round((event.loaded / event.total) * 100);
-                    progressBar.style.width = percent + '%';
-                    progressText.textContent = `Завантажуємо (${percent}%): ${file.name}`;
-                }
-            };
-
-            xhr.onload = async () => {
-                if (xhr.status === 200) {
-                    const response = JSON.parse(xhr.responseText);
-                    let cleanTitle = file.name.replace(/\.mp4$/i, '').replace(/_nologo$/i, '').replace(/_/g, ' ').trim();
-
-                    // Створюємо запис і отримуємо ID
-                    const tableName = contentTypeSelect.value;
-                    const { data, error } = await supabase
-                        .from(tableName)
-                        .insert([{ 
-                            title: cleanTitle, 
-                            description: '', 
-                            posterUrl: '', 
-                            videoFileName: response.fileName,
-                            views: 0,
-                            likes: 0
-                        }])
-                        .select();
-
-                    if (error) {
-                        console.error('Помилка створення запису:', error);
-                        progressText.textContent = `Помилка бази для ${file.name}`;
-                        progressBar.style.background = '#ef4444';
-                    } else {
-                        // Створюємо картку для редагування
-                        createEditCard(data[0], tableName);
-                        progressText.textContent = `Успішно завантажено: ${file.name}`;
-                    }
-                } else {
-                    progressText.textContent = `Помилка завантаження: ${xhr.status}`;
-                    progressBar.style.background = '#ef4444';
-                }
-                // Запускаємо наступний файл у черзі
-                processQueue();
-            };
-
-            xhr.onerror = () => {
-                progressText.textContent = `Помилка мережі`;
-                progressBar.style.background = '#ef4444';
-                processQueue(); // Продовжуємо чергу навіть при помилці
-            };
-
-            xhr.send(formData);
-
-        } catch (error) {
-            console.error(error);
-            progressText.textContent = 'Помилка: ' + error.message;
-            progressBar.style.background = '#ef4444';
-            processQueue();
+        if (!data || data.length === 0) {
+            modalStatus.textContent = 'У цій таблиці ще немає файлів.';
+            return;
         }
-    }
 
-    // === СТВОРЕННЯ КАРТКИ ДЛЯ РЕДАГУВАННЯ ===
-    function createEditCard(record, tableName) {
-        const card = document.createElement('div');
-        card.className = 'uploaded-card';
-        card.id = `card-${record.id}`;
-
-        card.innerHTML = `
-            <h3>${record.title}</h3>
-            
-            <label>Опис</label>
-            <textarea class="edit-desc" rows="2" placeholder="Додайте опис...">${record.description || ''}</textarea>
-            
-            <label>Постер (URL)</label>
-            <input type="text" class="edit-poster" placeholder="https://.../poster.jpg" value="${record.posterUrl || ''}">
-            
-            <button class="save-btn">Зберегти зміни</button>
-            <div class="save-status"></div>
-        `;
-
-        const saveBtn = card.querySelector('.save-btn');
-        const statusEl = card.querySelector('.save-status');
-        const descInput = card.querySelector('.edit-desc');
-        const posterInput = card.querySelector('.edit-poster');
-
-        saveBtn.addEventListener('click', async () => {
-            saveBtn.disabled = true;
-            statusEl.textContent = 'Зберігаємо...';
-            statusEl.style.color = '#fff';
-
-            const { error } = await supabase
-                .from(tableName)
-                .update({ 
-                    description: descInput.value.trim(), 
-                    posterUrl: posterInput.value.trim() 
-                })
-                .eq('id', record.id);
-
-            if (error) {
-                console.error('Помилка оновлення:', error);
-                statusEl.textContent = 'Помилка збереження';
-                statusEl.style.color = '#f87171';
-                saveBtn.disabled = false;
-            } else {
-                statusEl.textContent = 'Успішно збережено!';
-                statusEl.style.color = '#22c55e';
-                // Кнопку залишаємо disabled, щоб уникнути повторних натискань
-            }
+        modalStatus.textContent = `Знайдено файлів: ${data.length}`;
+        
+        data.forEach(item => {
+            const li = document.createElement('li');
+            li.className = 'file-item';
+            li.innerHTML = `
+                <input type="checkbox" value="${item.id}" data-filename="${item.videoFileName}">
+                <div class="file-info">
+                    <strong>${item.title}</strong>
+                    <span>${item.videoFileName}</span>
+                </div>
+            `;
+            fileList.appendChild(li);
         });
-
-        // Додаємо нову картку на початок списку
-        cardsContainer.prepend(card);
     }
+
+    // === ЛОГІКА ВИДАЛЕННЯ ===
+    deleteSelectedBtn.addEventListener('click', async () => {
+        const checkboxes = fileList.querySelectorAll('input[type="checkbox"]:checked');
+        if (checkboxes.length === 0) {
+            alert('Будь ласка, оберіть хоча б один файл для видалення.');
+            return;
+        }
+
+        if (!confirm(`Ви впевнені, що хочете видалити ${checkboxes.length} файлів? Вони будуть видалені як з бази, так і з Backblaze.`)) {
+            return;
+        }
+
+        deleteSelectedBtn.disabled = true;
+        modalStatus.textContent = 'Видалення...';
+        
+        const tableName = contentTypeSelect.value;
+        let successCount = 0;
+        let errorCount = 0;
+
+        for (const cb of checkboxes) {
+            const id = cb.value;
+            const fileName = cb.dataset.filename;
+            
+            try {
+                // 1. Видаляємо з B2
+                if (fileName) {
+                    const response = await fetch(`https://banderizzation-backend.onrender.com/api/delete-video?fileName=${encodeURIComponent(fileName)}`, {
+                        method: 'DELETE'
+                    });
+                    if (!response.ok) throw new Error('Помилка B2');
+                }
+
+                // 2. Видаляємо з Supabase
+                const { error } = await supabase.from(tableName).delete().eq('id', id);
+                if (error) throw error;
+
+                successCount++;
+                cb.closest('.file-item').remove(); // Видаляємо рядок зі списку
+            } catch (error) {
+                console.error(`Помилка видалення ${fileName}:`, error);
+                errorCount++;
+            }
+        }
+
+        deleteSelectedBtn.disabled = false;
+        modalStatus.textContent = `Видалено: ${successCount}. Помилок: ${errorCount}.`;
+    });
 </script>
 
 </body>
