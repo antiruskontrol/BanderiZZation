@@ -1,15 +1,15 @@
 /*
 ===================================================================
-Версія:       2.1.0 (BanderiZZation! Hub — player.js)
+Версія:       2.2.0 (BanderiZZation! Hub — player.js)
 Дата, час:    2026-10-30
 Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
 -------------------------------------------------------------------
 Еволюція змін:
- Зміни 2.1.0 відносно 2.0.1:
-  1. Повернуто функціонал коментарів, тепер через таблицю comments у Supabase.
-  2. Додано завантаження коментарів для конкретного фільму (фільтр за movie_id).
-  3. Додано відправку нових коментарів у Supabase.
-  4. Додано підписку на зміни в таблиці comments для живого оновлення.
+ Зміни 2.2.0 відносно 2.1.0:
+  1. Скрипт став універсальним: автоматично визначає, з якою таблицею
+     працювати (movies/comments або cartoons/cartoon_comments), 
+     спираючись на атрибут data-collection у тегу <body>.
+  2. Додано підтримку коментарів для мультфільмів.
 ===================================================================
 */
 
@@ -37,15 +37,22 @@ const BACKEND_URL = 'https://banderizzation-backend.onrender.com';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const EMPTY_TEXT = document.body.dataset.empty || 'Поки що нічого немає...';
 
+// Визначаємо, з якими таблицями працювати
+const COLLECTION = document.body.dataset.collection || 'movies';
+const IS_CARTOON = COLLECTION === 'cartoons';
+const TABLE_MOVIES = IS_CARTOON ? 'cartoons' : 'movies';
+const TABLE_COMMENTS = IS_CARTOON ? 'cartoon_comments' : 'comments';
+const ID_COLUMN = IS_CARTOON ? 'cartoon_id' : 'movie_id'; // Назва колонки для зв'язку
+
 start();
 
 function start() {
-    dbg(`Supabase ініціалізовано`);
+    dbg(`Supabase ініціалізовано. Колекція: ${TABLE_MOVIES}`);
 
     const MAX_LEN = 500;
     const COOLDOWN_MS = 30000;
     const LAST_SENT_KEY = 'bz_comment_last_sent';
-    const LIKED_KEY = `bz_liked_movies`;
+    const LIKED_KEY = `bz_liked_${TABLE_MOVIES}`;
     const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
     const $ = (id) => document.getElementById(id);
@@ -111,12 +118,12 @@ function start() {
     // ===== СПИСОК КАРТОК =====
     async function loadMovies() {
         const { data: movies, error } = await supabase
-            .from('movies')
+            .from(TABLE_MOVIES)
             .select('*')
             .order('created_at', { ascending: false });
 
         if (error) {
-            dbg(`ПОМИЛКА читання колекції movies:`, error);
+            dbg(`ПОМИЛКА читання колекції ${TABLE_MOVIES}:`, error);
             container.innerHTML = `<p class="sub-text">Не вдалося завантажити список. Спробуйте оновити сторінку.</p>`;
             return;
         }
@@ -171,8 +178,8 @@ function start() {
 
     loadMovies();
 
-    supabase.channel('custom-all-channel')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'movies' }, (payload) => {
+    supabase.channel(`custom-all-channel-${TABLE_MOVIES}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: TABLE_MOVIES }, (payload) => {
           loadMovies(); 
       })
       .subscribe();
@@ -184,13 +191,13 @@ function start() {
         commentsList.innerHTML = '<p class="chat-empty">Завантаження коментарів...</p>';
         
         const { data: comments, error } = await supabase
-            .from('comments')
+            .from(TABLE_COMMENTS)
             .select('*')
-            .eq('movie_id', movieId)
+            .eq(ID_COLUMN, movieId) // Використовуємо динамічну назву колонки
             .order('created_at', { ascending: false });
 
         if (error) {
-            dbg('ПОМИЛКА читання коментарів:', error);
+            dbg(`ПОМИЛКА читання коментарів (${TABLE_COMMENTS}):`, error);
             commentsList.innerHTML = '<p class="chat-empty">Не вдалося завантажити коментарі.</p>';
             return;
         }
@@ -230,16 +237,15 @@ function start() {
             commentsList.appendChild(item);
         });
 
-        // Підписка на нові коментарі саме для цього фільму
+        // Підписка на нові коментарі
         if (commentChannel) supabase.removeChannel(commentChannel);
-        commentChannel = supabase.channel('comments-channel')
+        commentChannel = supabase.channel(`comments-channel-${TABLE_COMMENTS}`)
             .on('postgres_changes', { 
                 event: 'INSERT', 
                 schema: 'public', 
-                table: 'comments',
-                filter: `movie_id=eq.${movieId}`
+                table: TABLE_COMMENTS,
+                filter: `${ID_COLUMN}=eq.${movieId}` // Динамічний фільтр
             }, (payload) => {
-                dbg('Новий коментар, оновлюємо список...');
                 loadComments(movieId);
             })
             .subscribe();
@@ -253,7 +259,7 @@ function start() {
         const videoFileName = data.videoFileName; 
         
         if (!videoFileName) {
-            alert('Для цього фільму ще не завантажено відео.');
+            alert('Для цього контенту ще не завантажено відео.');
             return;
         }
 
@@ -283,11 +289,11 @@ function start() {
         modal.setAttribute('aria-hidden', 'false');
         document.body.classList.add('player-open');
 
-        // Завантажуємо коментарі для цього фільму
         loadComments(id);
 
         // Збільшення переглядів
-        await supabase.rpc('increment_views', { row_id: id });
+        const viewRpc = IS_CARTOON ? 'increment_cartoon_views' : 'increment_views';
+        await supabase.rpc(viewRpc, { row_id: id });
         data.views = (data.views || 0) + 1;
         viewsEl.textContent = data.views;
 
@@ -300,7 +306,8 @@ function start() {
             likeBtn.disabled = true;
             saveLiked([...list, id]);
             
-            await supabase.rpc('increment_likes', { row_id: id });
+            const likeRpc = IS_CARTOON ? 'increment_cartoon_likes' : 'increment_likes';
+            await supabase.rpc(likeRpc, { row_id: id });
             data.likes = (data.likes || 0) + 1;
             likesEl.textContent = data.likes;
         };
@@ -372,15 +379,16 @@ function start() {
         setStatus('Надсилаємо…', '');
 
         try {
+            // Формуємо об'єкт для вставки з динамічною назвою колонки
+            const insertData = { 
+                email: email, 
+                text: text 
+            };
+            insertData[ID_COLUMN] = activeId;
+
             const { error } = await supabase
-                .from('comments')
-                .insert([
-                    { 
-                        movie_id: activeId, 
-                        email: email, 
-                        text: text 
-                    }
-                ]);
+                .from(TABLE_COMMENTS)
+                .insert([insertData]);
 
             if (error) throw error;
 
@@ -389,7 +397,6 @@ function start() {
             textInput.value = '';
             counterEl.textContent = `0 / ${MAX_LEN}`;
             
-            // Оновлюємо список коментарів
             loadComments(activeId);
 
         } catch (error) {
