@@ -1,13 +1,14 @@
 /*
 ===================================================================
-Версія:       2.2.1 (BanderiZZation! Hub — player.js)
+Версія:       2.3.0 (BanderiZZation! Hub — player.js)
 Дата, час:    2026-10-30
 Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
 -------------------------------------------------------------------
 Еволюція змін:
- Зміни 2.2.1 відносно 2.2.0:
-  1. Додано функцію cleanTitle для очищення назв від технологічних
-     позначок (nologo, delogo, logo, розширень файлів).
+ Зміни 2.3.0 відносно 2.2.0:
+  1. Додано функцію cleanTitle, яка автоматично прибирає технологічні
+     позначки (nologo, delogo, logo) та підкреслення з назв файлів
+     перед відображенням на картках.
 ===================================================================
 */
 
@@ -25,13 +26,17 @@ try {
 const TAG = '[BZ-PLAYER]';
 const dbg = (msg, ...rest) => console.log(`${TAG} ${msg}`, ...rest);
 
+// ВАШІ КЛЮЧІ SUPABASE
 const SUPABASE_URL = 'https://bmwzzvrmkupwimhvzzqe.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_AlkDR5OTAyQjce5VYnLFOg_RlENaNLu';
+
+// АДРЕСА RENDER
 const BACKEND_URL = 'https://banderizzation-backend.onrender.com'; 
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const EMPTY_TEXT = document.body.dataset.empty || 'Поки що нічого немає...';
 
+// Визначаємо, з якими таблицями працювати
 const COLLECTION = document.body.dataset.collection || 'movies';
 const IS_CARTOON = COLLECTION === 'cartoons';
 const TABLE_MOVIES = IS_CARTOON ? 'cartoons' : 'movies';
@@ -154,7 +159,8 @@ function start() {
             card.setAttribute('role', 'button');
 
             const posterSrc = data.posterUrl || 'poster1.jfif';
-            const displayTitle = cleanTitle(data.title); // Використовуємо очищену назву
+            // Використовуємо очищену назву
+            const displayTitle = cleanTitle(data.title);
             const descText = data.description || ''; 
 
             card.innerHTML = `
@@ -267,7 +273,7 @@ function start() {
             return;
         }
 
-        titleEl.textContent = cleanTitle(data.title); // Очищена назва в плеєрі
+        titleEl.textContent = cleanTitle(data.title); // Очищена назва для плеєра
         descEl.textContent = data.description || '';
         viewsEl.textContent = data.views || 0;
         likesEl.textContent = data.likes || 0;
@@ -339,6 +345,7 @@ function start() {
     });
     window.addEventListener('bz:leave', () => closePlayer('перехід на іншу сторінку'));
 
+    // ===== ВІДПРАВКА КОМЕНТАРЯ =====
     textInput.addEventListener('input', () => {
         counterEl.textContent = `${textInput.value.length} / ${MAX_LEN}`;
     });
