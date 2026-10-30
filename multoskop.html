@@ -1,20 +1,13 @@
 <!--
 ===================================================================
-Версія:       1.0.2 (BanderiZZation! Hub — multoskop.html)
-Дата, час:    2026-10-16 01:40
+Версія:       1.0.3 (BanderiZZation! Hub — multoskop.html)
+Дата, час:    2026-10-30
 Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
 -------------------------------------------------------------------
 Еволюція змін:
- Зміни 1.0.0:
-  1. Нова сторінка-заглушка «Мультфільмоскоп». Фон: sky/skymult.png.
- Зміни 1.0.1 відносно 1.0.0:
-  1. Заглушку замінено на повноцінну сторінку: сітка мультфільмів із колекції
-     cartoons (Firestore), неон-плеєр, лічильники переглядів і лайків.
-  2. Гілка коментарів під кожним мультфільмом: підколекція cartoons/{id}/comments.
-  3. Логіка та стилі — спільні з Кіноскопом (player.js / player.css).
- Зміни 1.0.2 відносно 1.0.1 (Поточна версія):
-  1. Сторінка перейменована: «Мультфільмоскоп» → «Мультоскоп» (назва, заголовок, підпис).
-  2. player.js підключено як звичайний скрипт (працює й при відкритті з диска file://).
+ Зміни 1.0.3 відносно 1.0.2:
+  1. Додано кнопку-шестерню (⚙️) у верхню панель для швидкого 
+     доступу до адмін-панелі (admin.html).
 ===================================================================
 -->
 <!DOCTYPE html>
@@ -59,7 +52,7 @@
 
             <p class="player-desc" id="modalDescription"></p>
 
-            <!-- Гілка коментарів: лишається під фільмом (підколекція в Firestore) -->
+            <!-- Гілка коментарів -->
             <div class="chat-section">
                 <h3 class="chat-title">Коментарі до мультфільму</h3>
 
@@ -73,7 +66,7 @@
                     <div class="chat-counter" id="charCounter">0 / 500</div>
                 </div>
 
-                <!-- Поле-пастка від ботів: людина його не бачить -->
+                <!-- Поле-пастка від ботів -->
                 <input id="chatWebsite" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp-field">
 
                 <button class="submit-chat-btn" id="sendCommentBtn" type="button">Надіслати</button>
@@ -86,5 +79,28 @@
 
     <script src="common.js"></script>
     <script src="player.js"></script>
+
+    <!-- Скрипт для додавання шестерні в меню -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            setTimeout(() => {
+                const controls = document.querySelector('.top-controls');
+                if (controls) {
+                    const adminLink = document.createElement('a');
+                    adminLink.href = 'admin.html';
+                    adminLink.innerHTML = '⚙️';
+                    adminLink.title = 'Адмін-панель';
+                    adminLink.className = 'control-badge';
+                    adminLink.style.textDecoration = 'none';
+                    adminLink.style.display = 'flex';
+                    adminLink.style.alignItems = 'center';
+                    adminLink.style.justifyContent = 'center';
+                    adminLink.style.padding = '0.2rem 0.6rem';
+                    adminLink.style.fontSize = '1rem';
+                    controls.appendChild(adminLink);
+                }
+            }, 100);
+        });
+    </script>
 </body>
 </html>
