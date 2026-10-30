@@ -11,10 +11,10 @@
             color: #ffffff;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             min-height: 100vh;
             margin: 0;
-            padding: 20px;
+            padding: 40px 20px;
             box-sizing: border-box;
         }
         .admin-container {
@@ -23,13 +23,13 @@
             border-radius: 16px;
             padding: 30px;
             width: 100%;
-            max-width: 500px;
+            max-width: 600px;
             box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
-            display: none; /* Приховано за замовчуванням */
+            display: none;
         }
         h2 { text-align: center; color: #38ff3b; margin-bottom: 20px; }
         label { display: block; margin-top: 15px; margin-bottom: 5px; color: #93c5fd; font-size: 0.9rem; }
-        input, textarea, select {
+        select, input, textarea {
             width: 100%;
             padding: 10px;
             border-radius: 8px;
@@ -39,26 +39,12 @@
             box-sizing: border-box;
         }
         select:focus, input:focus, textarea:focus { outline: none; border-color: #22c55e; box-shadow: 0 0 10px rgba(34, 197, 94, 0.5); }
-        button {
-            margin-top: 20px;
-            width: 100%;
-            padding: 12px;
-            background: #16a34a;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        button:hover { background: #22c55e; }
-        .status { margin-top: 15px; text-align: center; font-size: 0.9rem; }
         
-        /* Стилі для Drag & Drop */
+        /* Зона Drag & Drop */
         #dropZone {
             border: 2px dashed #3b82f6;
             border-radius: 12px;
-            padding: 30px;
+            padding: 30px 20px;
             text-align: center;
             margin: 20px 0;
             cursor: pointer;
@@ -66,17 +52,44 @@
             background: rgba(59, 130, 246, 0.05);
         }
         #dropZone:hover { background: rgba(59, 130, 246, 0.1); }
-        #dropZone p { margin: 0; color: #93c5fd; }
-        #dropZone span { font-size: 0.8rem; color: #64748b; }
+        #dropZone p { margin: 0; color: #93c5fd; font-size: 1.1rem; }
+        #dropZone span { font-size: 0.85rem; color: #64748b; display: block; margin-top: 5px; }
+        
+        /* Прогрес-бар */
         #uploadProgress { display: none; margin-top: 10px; }
         .progress-bg { background: #1e293b; border-radius: 8px; overflow: hidden; height: 20px; }
         #progressBar { background: #22c55e; width: 0%; height: 100%; transition: width 0.3s; }
+        #progressText { text-align: center; font-size: 0.9rem; margin-top: 8px; color: #cbd5e1; }
+
+        /* Картки завантажених файлів */
+        .uploaded-card {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid #475569;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        .uploaded-card h3 { margin: 0 0 10px 0; color: #facc15; font-size: 1rem; }
+        .uploaded-card label { margin-top: 10px; font-size: 0.8rem; }
+        .uploaded-card button {
+            margin-top: 10px;
+            width: 100%;
+            padding: 8px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .uploaded-card button:hover { background: #2563eb; }
+        .save-status { font-size: 0.8rem; text-align: center; margin-top: 5px; }
     </style>
 </head>
 <body>
 
 <div class="admin-container" id="adminPanel">
-    <h2>🎬 Додати новий контент</h2>
+    <h2>📦 Завантаження контенту</h2>
     
     <label for="contentType">Тип контенту</label>
     <select id="contentType">
@@ -84,48 +97,32 @@
         <option value="cartoons">Мультфільм (Мультоскоп)</option>
     </select>
 
-    <label for="title">Назва</label>
-    <input type="text" id="title" placeholder="Наприклад: Вавилон XX">
-
-    <label for="description">Опис</label>
-    <textarea id="description" rows="3" placeholder="Короткий опис..."></textarea>
-
-    <label for="posterUrl">Посилання на постер (URL)</label>
-    <input type="text" id="posterUrl" placeholder="https://raw.githubusercontent.com/.../poster.jpg">
-
     <!-- Зона Drag & Drop -->
-    <label>Відеофайл (перетягніть сюди)</label>
     <div id="dropZone">
-        <p>Перетягніть відеофайл сюди</p>
-        <span>або натисніть, щоб вибрати</span>
-        <input type="file" id="videoFileInput" accept="video/*" style="display: none;">
+        <p>Перетягніть відеофайли сюди</p>
+        <span>Можна вибрати відразу декілька</span>
+        <input type="file" id="videoFileInput" accept="video/*" multiple style="display: none;">
     </div>
 
     <div id="uploadProgress">
         <div class="progress-bg">
             <div id="progressBar"></div>
         </div>
-        <p id="progressText" style="text-align: center; font-size: 0.8rem; margin-top: 5px;">0%</p>
+        <p id="progressText">0%</p>
     </div>
 
-    <label for="videoFileName">Назва відеофайлу в Backblaze</label>
-    <input type="text" id="videoFileName" placeholder="Заповниться автоматично після завантаження">
-
-    <button id="saveBtn">Зберегти в базу</button>
-    <div class="status" id="status"></div>
+    <!-- Сюди додаватимуться картки -->
+    <div id="uploadedCardsContainer"></div>
 </div>
 
 <script type="module">
-    // === ПЕРЕВІРКА ПАРОЛЯ ===
     const CORRECT_PASSWORD = "9969";
     let enteredPassword = prompt("Введіть пароль для доступу до адмін-панелі:");
-
-    if (enteredPassword === CORRECT_PASSWORD) {
-        document.getElementById('adminPanel').style.display = 'block';
-    } else {
+    if (enteredPassword !== CORRECT_PASSWORD) {
         document.body.innerHTML = "<h1 style='color:red; text-align:center; margin-top:20%;'>Доступ заборонено</h1>";
         throw new Error("Неправильний пароль");
     }
+    document.getElementById('adminPanel').style.display = 'block';
 
     // === SUPABASE ===
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
@@ -134,38 +131,40 @@
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const contentTypeSelect = document.getElementById('contentType');
-    const saveBtn = document.getElementById('saveBtn');
-    const statusDiv = document.getElementById('status');
-
-    // === DRAG & DROP ТА ЗАВАНТАЖЕННЯ ===
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('videoFileInput');
     const progressContainer = document.getElementById('uploadProgress');
     const progressBar = document.getElementById('progressBar');
     const progressText = document.getElementById('progressText');
-    const videoFileNameInput = document.getElementById('videoFileName');
+    const cardsContainer = document.getElementById('uploadedCardsContainer');
 
+    // === DRAG & DROP ===
     dropZone.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', (e) => { if (e.target.files.length > 0) handleFileUpload(e.target.files[0]); });
+    
+    fileInput.addEventListener('change', (e) => { 
+        if (e.target.files.length > 0) {
+            Array.from(e.target.files).forEach(file => handleFileUpload(file));
+        }
+    });
 
     dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.background = 'rgba(59, 130, 246, 0.2)'; });
     dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.style.background = 'rgba(59, 130, 246, 0.05)'; });
     dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
         dropZone.style.background = 'rgba(59, 130, 246, 0.05)';
-        if (e.dataTransfer.files.length > 0) handleFileUpload(e.dataTransfer.files[0]);
+        if (e.dataTransfer.files.length > 0) {
+            Array.from(e.dataTransfer.files).forEach(file => handleFileUpload(file));
+        }
     });
 
+    // === ЗАВАНТАЖЕННЯ ТА СТВОРЕННЯ КАРТКИ ===
     async function handleFileUpload(file) {
-        if (!file.type.startsWith('video/')) {
-            alert('Будь ласка, виберіть відеофайл.');
-            return;
-        }
+        if (!file.type.startsWith('video/')) return;
 
         progressContainer.style.display = 'block';
         progressBar.style.width = '0%';
-        progressText.textContent = 'Завантажуємо на сервер...';
-        dropZone.style.pointerEvents = 'none';
+        progressBar.style.background = '#22c55e';
+        progressText.textContent = `Завантажуємо: ${file.name}`;
 
         const formData = new FormData();
         formData.append('video', file);
@@ -179,37 +178,50 @@
                 if (event.lengthComputable) {
                     const percent = Math.round((event.loaded / event.total) * 100);
                     progressBar.style.width = percent + '%';
-                    progressText.textContent = percent + '%';
+                    progressText.textContent = `Завантажуємо (${percent}%): ${file.name}`;
                 }
             };
 
-            xhr.onload = () => {
+            xhr.onload = async () => {
                 if (xhr.status === 200) {
                     const response = JSON.parse(xhr.responseText);
-                    progressText.textContent = 'Успішно завантажено!';
-                    progressBar.style.background = '#22c55e';
-                    videoFileNameInput.value = response.fileName;
                     
-                    // Автозаповнення назви
-                    let cleanTitle = response.fileName
-                        .replace(/\.mp4$/i, '')
-                        .replace(/_nologo$/i, '')
-                        .replace(/_/g, ' ')
-                        .trim();
-                    document.getElementById('title').value = cleanTitle;
+                    // Автоматична назва
+                    let cleanTitle = file.name.replace(/\.mp4$/i, '').replace(/_nologo$/i, '').replace(/_/g, ' ').trim();
 
-                    dropZone.style.pointerEvents = 'auto';
+                    // Створюємо запис у Supabase і ОДРАЗУ отримуємо його ID
+                    const tableName = contentTypeSelect.value;
+                    const { data, error } = await supabase
+                        .from(tableName)
+                        .insert([{ 
+                            title: cleanTitle, 
+                            description: '', 
+                            posterUrl: '', 
+                            videoFileName: response.fileName,
+                            views: 0,
+                            likes: 0
+                        }])
+                        .select(); // .select() змушує Supabase повернути створений запис
+
+                    if (error) {
+                        console.error('Помилка створення запису:', error);
+                        progressText.textContent = `Помилка бази для ${file.name}`;
+                        progressBar.style.background = '#ef4444';
+                    } else {
+                        // Створюємо картку для редагування
+                        const newRecord = data[0];
+                        createEditCard(newRecord, tableName);
+                        progressText.textContent = `Успішно завантажено: ${file.name}`;
+                    }
                 } else {
-                    progressText.textContent = 'Помилка сервера: ' + xhr.status;
+                    progressText.textContent = `Помилка завантаження: ${xhr.status}`;
                     progressBar.style.background = '#ef4444';
-                    dropZone.style.pointerEvents = 'auto';
                 }
             };
 
             xhr.onerror = () => {
-                progressText.textContent = 'Помилка мережі';
+                progressText.textContent = `Помилка мережі`;
                 progressBar.style.background = '#ef4444';
-                dropZone.style.pointerEvents = 'auto';
             };
 
             xhr.send(formData);
@@ -218,55 +230,60 @@
             console.error(error);
             progressText.textContent = 'Помилка: ' + error.message;
             progressBar.style.background = '#ef4444';
-            dropZone.style.pointerEvents = 'auto';
         }
     }
 
-    // === ЗБЕРЕЖЕННЯ В БАЗУ ===
-    saveBtn.addEventListener('click', async () => {
-        const tableName = contentTypeSelect.value; // 'movies' або 'cartoons'
-        const title = document.getElementById('title').value.trim();
-        const description = document.getElementById('description').value.trim();
-        const posterUrl = document.getElementById('posterUrl').value.trim();
-        const videoFileName = document.getElementById('videoFileName').value.trim();
+    // === СТВОРЕННЯ КАРТКИ ДЛЯ РЕДАГУВАННЯ ===
+    function createEditCard(record, tableName) {
+        const card = document.createElement('div');
+        card.className = 'uploaded-card';
+        card.id = `card-${record.id}`;
 
-        if (!title || !videoFileName) {
-            statusDiv.textContent = 'Заповніть хоча б Назву та Назву відеофайлу!';
-            statusDiv.style.color = '#f87171';
-            return;
-        }
+        card.innerHTML = `
+            <h3>${record.title}</h3>
+            
+            <label>Опис</label>
+            <textarea class="edit-desc" rows="2" placeholder="Додайте опис...">${record.description || ''}</textarea>
+            
+            <label>Постер (URL)</label>
+            <input type="text" class="edit-poster" placeholder="https://.../poster.jpg" value="${record.posterUrl || ''}">
+            
+            <button class="save-btn">Зберегти зміни</button>
+            <div class="save-status"></div>
+        `;
 
-        saveBtn.disabled = true;
-        statusDiv.textContent = 'Зберігаємо...';
-        statusDiv.style.color = '#fff';
+        // Логіка збереження для конкретної картки
+        const saveBtn = card.querySelector('.save-btn');
+        const statusEl = card.querySelector('.save-status');
+        const descInput = card.querySelector('.edit-desc');
+        const posterInput = card.querySelector('.edit-poster');
 
-        const { error } = await supabase
-            .from(tableName)
-            .insert([{ 
-                title: title, 
-                description: description, 
-                posterUrl: posterUrl, 
-                videoFileName: videoFileName,
-                views: 0,
-                likes: 0
-            }]);
+        saveBtn.addEventListener('click', async () => {
+            saveBtn.disabled = true;
+            statusEl.textContent = 'Зберігаємо...';
+            statusEl.style.color = '#fff';
 
-        if (error) {
-            console.error(error);
-            statusDiv.textContent = 'Помилка: ' + error.message;
-            statusDiv.style.color = '#f87171';
-        } else {
-            statusDiv.textContent = `Успішно додано в ${tableName === 'movies' ? 'Кіноскоп' : 'Мультоскоп'}!`;
-            statusDiv.style.color = '#22c55e';
-            // Очищаємо форму
-            document.getElementById('title').value = '';
-            document.getElementById('description').value = '';
-            document.getElementById('posterUrl').value = '';
-            document.getElementById('videoFileName').value = '';
-            progressContainer.style.display = 'none';
-        }
-        saveBtn.disabled = false;
-    });
+            const { error } = await supabase
+                .from(tableName)
+                .update({ 
+                    description: descInput.value.trim(), 
+                    posterUrl: posterInput.value.trim() 
+                })
+                .eq('id', record.id);
+
+            if (error) {
+                console.error('Помилка оновлення:', error);
+                statusEl.textContent = 'Помилка збереження';
+                statusEl.style.color = '#f87171';
+            } else {
+                statusEl.textContent = 'Успішно збережено!';
+                statusEl.style.color = '#22c55e';
+                saveBtn.disabled = false;
+            }
+        });
+
+        cardsContainer.appendChild(card);
+    }
 </script>
 
 </body>
