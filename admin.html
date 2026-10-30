@@ -178,7 +178,19 @@
                 const response = JSON.parse(xhr.responseText);
                 progressText.textContent = 'Успішно завантажено!';
                 progressBar.style.background = '#22c55e';
-                videoFileNameInput.value = response.fileName;
+                // Беремо назву файлу, яку повернув сервер
+const rawName = response.fileName;
+
+// Очищаємо назву для поля "Назва фільму"
+let cleanTitle = rawName
+    .replace(/\.mp4$/i, '')        // Прибираємо розширення .mp4
+    .replace(/_nologo$/i, '')       // Прибираємо _nologo
+    .replace(/_/g, ' ')             // Замінюємо всі підкреслення на пробіли
+    .trim();                        // Прибираємо зайві пробіли з країв
+
+// Заповнюємо поля
+videoFileNameInput.value = rawName;
+document.getElementById('title').value = cleanTitle; // <-- Автозаповнення назви
                 dropZone.style.pointerEvents = 'auto';
             } else {
                 progressText.textContent = 'Помилка сервера: ' + xhr.status;
