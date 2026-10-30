@@ -1,13 +1,15 @@
 /*
 ===================================================================
-Версія:       2.0.1 (BanderiZZation! Hub — player.js)
-Дата, час:    2026-10-29
+Версія:       2.1.0 (BanderiZZation! Hub — player.js)
+Дата, час:    2026-10-30
 Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
 -------------------------------------------------------------------
 Еволюція змін:
- Зміни 2.0.1 відносно 2.0.0:
-  1. Виправлено помилку, коли плеєр не знаходив поле videoFileName.
-  2. Додано перевірку на наявність полів title та description.
+ Зміни 2.1.0 відносно 2.0.1:
+  1. Повернуто функціонал коментарів, тепер через таблицю comments у Supabase.
+  2. Додано завантаження коментарів для конкретного фільму (фільтр за movie_id).
+  3. Додано відправку нових коментарів у Supabase.
+  4. Додано підписку на зміни в таблиці comments для живого оновлення.
 ===================================================================
 */
 
@@ -44,6 +46,7 @@ function start() {
     const COOLDOWN_MS = 30000;
     const LAST_SENT_KEY = 'bz_comment_last_sent';
     const LIKED_KEY = `bz_liked_movies`;
+    const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
     const $ = (id) => document.getElementById(id);
     const container = $('movies-container');
@@ -65,6 +68,12 @@ function start() {
 
     let activeId = null;
     const itemsById = new Map();
+
+    function maskEmail(email) {
+        const [local, domain] = email.split('@');
+        const keep = local.length > 2 ? 2 : 1;
+        return `${local.slice(0, keep)}***@${domain}`;
+    }
 
     function setStatus(text, kind) {
         statusEl.textContent = text;
@@ -99,6 +108,7 @@ function start() {
         }
     }
 
+    // ===== СПИСОК КАРТОК =====
     async function loadMovies() {
         const { data: movies, error } = await supabase
             .from('movies')
@@ -131,10 +141,8 @@ function start() {
             card.tabIndex = 0;
             card.setAttribute('role', 'button');
 
-            // Безпечне отримання даних
             const posterSrc = data.posterUrl || 'poster1.jfif';
             const displayTitle = data.title || 'Без назви';
-            // Якщо поле description немає, шукаємо будь-яке інше текстове поле для опису
             const descText = data.description || ''; 
 
             card.innerHTML = `
@@ -169,15 +177,79 @@ function start() {
       })
       .subscribe();
 
-    function renderComments() {
-        commentsList.innerHTML = '<p class="chat-empty">Коментарі тимчасово недоступні.</p>';
+    // ===== КОМЕНТАРІ =====
+    let commentChannel = null;
+
+    async function loadComments(movieId) {
+        commentsList.innerHTML = '<p class="chat-empty">Завантаження коментарів...</p>';
+        
+        const { data: comments, error } = await supabase
+            .from('comments')
+            .select('*')
+            .eq('movie_id', movieId)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            dbg('ПОМИЛКА читання коментарів:', error);
+            commentsList.innerHTML = '<p class="chat-empty">Не вдалося завантажити коментарі.</p>';
+            return;
+        }
+
+        commentsList.replaceChildren();
+
+        if (!comments || comments.length === 0) {
+            commentsList.innerHTML = '<p class="chat-empty">Коментарів ще немає. Будьте першим!</p>';
+            return;
+        }
+
+        comments.forEach((c) => {
+            const item = document.createElement('article');
+            item.className = 'chat-comment';
+
+            const meta = document.createElement('div');
+            meta.className = 'chat-comment-meta';
+            
+            const who = document.createElement('span');
+            who.textContent = maskEmail(c.email || 'anon@example.com');
+            
+            const when = document.createElement('span');
+            when.textContent = c.created_at
+                ? new Date(c.created_at).toLocaleString('uk-UA', {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit', hour12: false
+                })
+                : '';
+            
+            meta.append(who, when);
+
+            const text = document.createElement('p');
+            text.className = 'chat-comment-text';
+            text.textContent = c.text || '';
+
+            item.append(meta, text);
+            commentsList.appendChild(item);
+        });
+
+        // Підписка на нові коментарі саме для цього фільму
+        if (commentChannel) supabase.removeChannel(commentChannel);
+        commentChannel = supabase.channel('comments-channel')
+            .on('postgres_changes', { 
+                event: 'INSERT', 
+                schema: 'public', 
+                table: 'comments',
+                filter: `movie_id=eq.${movieId}`
+            }, (payload) => {
+                dbg('Новий коментар, оновлюємо список...');
+                loadComments(movieId);
+            })
+            .subscribe();
     }
 
+    // ===== ВІДКРИТТЯ / ЗАКРИТТЯ ПЛЕЄРА =====
     async function openPlayer(id) {
         const data = itemsById.get(id);
         if (!data) return;
 
-        // ШУКАЄМО ПОЛЕ З НАЗВОЮ ФАЙЛУ
         const videoFileName = data.videoFileName; 
         
         if (!videoFileName) {
@@ -206,11 +278,13 @@ function start() {
         honeypot.value = '';
         counterEl.textContent = `0 / ${MAX_LEN}`;
         setStatus('', '');
-        renderComments();
 
         modal.classList.add('is-open');
         modal.setAttribute('aria-hidden', 'false');
         document.body.classList.add('player-open');
+
+        // Завантажуємо коментарі для цього фільму
+        loadComments(id);
 
         // Збільшення переглядів
         await supabase.rpc('increment_views', { row_id: id });
@@ -238,6 +312,12 @@ function start() {
         modal.setAttribute('aria-hidden', 'true');
         document.body.classList.remove('player-open');
         iframe.src = 'about:blank'; 
+        
+        if (commentChannel) {
+            supabase.removeChannel(commentChannel);
+            commentChannel = null;
+        }
+        
         activeId = null;
     }
 
@@ -250,12 +330,74 @@ function start() {
     });
     window.addEventListener('bz:leave', () => closePlayer('перехід на іншу сторінку'));
 
+    // ===== ВІДПРАВКА КОМЕНТАРЯ =====
     textInput.addEventListener('input', () => {
         counterEl.textContent = `${textInput.value.length} / ${MAX_LEN}`;
     });
 
     sendBtn.addEventListener('click', async () => {
-        setStatus('Коментарі тимчасово вимкнено.', 'err');
+        setStatus('', '');
+        if (!activeId) return;
+
+        if (honeypot.value.trim() !== '') {
+            setStatus('Коментар надіслано.', 'ok');
+            textInput.value = '';
+            counterEl.textContent = `0 / ${MAX_LEN}`;
+            return;
+        }
+
+        const email = emailInput.value.trim();
+        const text = textInput.value.trim();
+
+        if (!EMAIL_RE.test(email) || email.length > 254) {
+            setStatus('Вкажіть коректну пошту, наприклад name@gmail.com.', 'err');
+            return;
+        }
+        if (!text) {
+            setStatus('Напишіть текст коментаря.', 'err');
+            return;
+        }
+        if (text.length > MAX_LEN) {
+            setStatus(`Коментар задовгий: максимум ${MAX_LEN} символів.`, 'err');
+            return;
+        }
+
+        const wait = COOLDOWN_MS - (Date.now() - getLastSent());
+        if (wait > 0) {
+            setStatus(`Зачекайте ${Math.ceil(wait / 1000)} с перед наступним коментарем.`, 'err');
+            return;
+        }
+
+        sendBtn.disabled = true;
+        setStatus('Надсилаємо…', '');
+
+        try {
+            const { error } = await supabase
+                .from('comments')
+                .insert([
+                    { 
+                        movie_id: activeId, 
+                        email: email, 
+                        text: text 
+                    }
+                ]);
+
+            if (error) throw error;
+
+            setLastSent(Date.now());
+            setStatus('Дякуємо! Коментар надіслано.', 'ok');
+            textInput.value = '';
+            counterEl.textContent = `0 / ${MAX_LEN}`;
+            
+            // Оновлюємо список коментарів
+            loadComments(activeId);
+
+        } catch (error) {
+            console.error('ПОМИЛКА збереження коментаря:', error);
+            setStatus('Не вдалося надіслати коментар. Спробуйте пізніше.', 'err');
+        } finally {
+            sendBtn.disabled = false;
+        }
     });
 }
 })();
