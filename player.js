@@ -1,16 +1,16 @@
 /*
 ===================================================================
-Версія:       2.4.6 (BanderiZZation! Hub — player.js)
+Версія:       2.5.0 (BanderiZZation! Hub — player.js)
 Дата, час:    2026-10-31
 Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
 -------------------------------------------------------------------
 Еволюція змін:
- Зміни 2.4.6 відносно 2.4.5:
-  1. Лайки переведено на метод прямого UPDATE (як і перегляди).
-     Це обійшло проблеми з RPC-функціями та кешем Supabase.
-  2. Додано правильне блокування кнопки лайка: вона активна, 
-     поки користувач не натисне, після чого блокується назавжди
-     (стан зберігається в localStorage).
+ Зміни 2.5.0 відносно 2.4.6:
+  1. Додано індикатор завантаження (спінер). Він показується 
+     одразу після кліку на картку і ховається, коли Render 
+     повертає тимчасове посилання на відео.
+  2. Додано перевірку наявності елемента #loadingOverlay 
+     (щоб скрипт не падав, якщо його раптом немає в HTML).
 ===================================================================
 */
 
@@ -60,6 +60,7 @@ function start() {
     const container = $('movies-container');
     const modal = $('videoModal');
     const iframe = $('playerIframe');
+    const loadingOverlay = $('loadingOverlay'); // Отримуємо індикатор
     const viewsEl = $('modalViews');
     const likesEl = $('modalLikes');
     const likeBtn = $('modalLikeBtn');
@@ -258,18 +259,25 @@ function start() {
             return;
         }
 
+        // Показуємо екран завантаження
+        if (loadingOverlay) loadingOverlay.style.display = 'flex';
+        if (iframe) iframe.src = 'about:blank';
+
         titleEl.textContent = data.title || 'Без назви';
         descEl.textContent = data.description || '';
         viewsEl.textContent = data.views || 0;
         likesEl.textContent = data.likes || 0;
-        iframe.src = 'about:blank';
 
         const secureUrl = await fetchVideoUrl(videoFileName);
 
         if (!secureUrl) {
+            if (loadingOverlay) loadingOverlay.style.display = 'none'; // Ховаємо при помилці
             alert('Не вдалося отримати доступ до відео. Спробуйте пізніше.');
             return;
         }
+
+        // Відео готове, ховаємо екран завантаження
+        if (loadingOverlay) loadingOverlay.style.display = 'none';
 
         activeId = id;
         iframe.src = secureUrl;
@@ -306,15 +314,15 @@ function start() {
             console.log("Помилка переглядів:", e);
         }
 
-        // === ЛОГІКА ЛАЙКІВ (Прямий запис) ===
+        // === ЛОГІКА ЛАЙКІВ ===
         const alreadyLiked = getLiked().includes(id);
-        likeBtn.disabled = alreadyLiked; // Блокуємо, якщо вже ставили
+        likeBtn.disabled = alreadyLiked;
         
         likeBtn.onclick = async () => {
             const list = getLiked();
             if (list.includes(id)) return;
             
-            likeBtn.disabled = true; // Блокуємо на час запиту
+            likeBtn.disabled = true;
             
             try {
                 const currentLikes = Number(data.likes) || 0;
@@ -328,13 +336,12 @@ function start() {
                 if (!updateErr) {
                     data.likes = newLikes;
                     likesEl.textContent = data.likes;
-                    saveLiked([...list, id]); // Запам'ятовуємо, що лайкнули
+                    saveLiked([...list, id]);
                     
                     const card = document.querySelector(`.movie-card[data-id="${id}"] .movie-stats-overlay`);
                     if (card) card.innerHTML = `👁️ ${data.views || 0}  |  🔥 ${data.likes}`;
                 } else {
-                    console.error("Помилка оновлення лайків:", updateErr);
-                    likeBtn.disabled = false; // Розблоковуємо при помилці
+                    likeBtn.disabled = false;
                 }
             } catch (e) {
                 console.log("Помилка лайків:", e);
@@ -350,6 +357,9 @@ function start() {
         document.body.classList.remove('player-open');
         iframe.src = 'about:blank'; 
         
+        // Ховаємо індикатор при закритті
+        if (loadingOverlay) loadingOverlay.style.display = 'none';
+
         if (commentChannel) {
             supabase.removeChannel(commentChannel);
             commentChannel = null;
