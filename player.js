@@ -155,6 +155,7 @@ function start() {
 
             const card = document.createElement('div');
             card.className = 'movie-card';
+            card.dataset.id = id;
             card.tabIndex = 0;
             card.setAttribute('role', 'button');
 
