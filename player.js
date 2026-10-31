@@ -311,6 +311,10 @@ function start() {
         const alreadyLiked = getLiked().includes(id);
         likeBtn.disabled = alreadyLiked;
         
+                // === ЛОГІКА ЛАЙКІВ (через RPC) ===
+        const alreadyLiked = getLiked().includes(id);
+        likeBtn.disabled = alreadyLiked;
+        
         likeBtn.onclick = async () => {
             const list = getLiked();
             if (list.includes(id)) return;
@@ -318,23 +322,24 @@ function start() {
             likeBtn.disabled = true;
             
             try {
-                const currentLikes = Number(data.likes) || 0;
-                const newLikes = currentLikes + 1;
+                const likeRpc = IS_CARTOON ? 'increment_cartoon_likes' : 'increment_likes';
+                const { data: newLikesResult, error: likeError } = await supabase.rpc(likeRpc, { row_id: Number(id) });
 
-                const { error: updateErr } = await supabase
-                    .from(TABLE_MOVIES)
-                    .update({ likes: newLikes })
-                    .eq('id', id);
-
-                if (!updateErr) {
-                    data.likes = newLikes;
-                    likesEl.textContent = data.likes;
-                    saveLiked([...list, id]);
-                    const card = document.querySelector(`.movie-card[data-id="${id}"] .movie-stats-overlay`);
-                    if (card) card.innerHTML = `👁️ ${data.views || 0}  |  🔥 ${data.likes}`;
-                } else {
-                    likeBtn.disabled = false;
+                if (likeError) {
+                    console.error("Помилка RPC лайків:", likeError);
+                    likeBtn.disabled = false; // Якщо помилка — розблоковуємо
+                    return;
                 }
+
+                // Оновлюємо цифру на екрані
+                data.likes = newLikesResult;
+                likesEl.textContent = data.likes;
+                saveLiked([...list, id]);
+
+                // Оновлюємо картку на фоні
+                const card = document.querySelector(`.movie-card[data-id="${id}"] .movie-stats-overlay`);
+                if (card) card.innerHTML = `👁️ ${data.views || 0}  |  🔥 ${data.likes}`;
+                
             } catch (e) {
                 console.log("Помилка лайків:", e);
                 likeBtn.disabled = false;
