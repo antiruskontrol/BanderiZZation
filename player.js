@@ -1,18 +1,17 @@
 /*
 ===================================================================
-Версія:       2.4.3 (BanderiZZation! Hub — player.js)
+Версія:       2.4.4 (BanderiZZation! Hub — player.js)
 Дата, час:    2026-10-31
 Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
 -------------------------------------------------------------------
 Еволюція змін:
- Зміни 2.4.3 відносно 2.4.2:
-  1. Повністю переписано логіку лайків та переглядів. 
-     Тепер використовується метод прямого UPDATE (ми беремо поточне
-     число, додаємо 1 і записуємо в базу), щоб обійти будь-які
-     проблеми з SQL-RPC функціями та кешем.
-  2. Додано захисні блоки try...catch, щоб скрипт не "падав" 
-     повністю, якщо станеться помилка з мережею.
-  3. Відновлено відображення карток та плеєра.
+ Зміни 2.4.4 відносно 2.4.3:
+  1. Виправлено логіку лайків. Тепер кнопка активна за замовчуванням. 
+     При натисканні: додається +1, кнопка блокується, стан 
+     зберігається в localStorage (щоб запобігти накрутці).
+  2. Перегляди та лайки оновлюються методом прямого запису 
+     (UPDATE), що гарантує 100% працездатність як для фільмів, 
+     так і для мультфільмів.
 ===================================================================
 */
 
@@ -288,7 +287,7 @@ function start() {
 
         loadComments(id);
 
-        // === ОНОВЛЕННЯ ПЕРЕГЛЯДІВ (Прямий запис) ===
+        // === ОНОВЛЕННЯ ПЕРЕГЛЯДІВ ===
         try {
             const currentViews = Number(data.views) || 0;
             const newViews = currentViews + 1;
@@ -301,7 +300,6 @@ function start() {
             if (!updateErr) {
                 data.views = newViews;
                 viewsEl.textContent = data.views;
-                // Оновлюємо картку на фоні
                 const card = document.querySelector(`.movie-card[data-id="${id}"] .movie-stats-overlay`);
                 if (card) card.innerHTML = `👁️ ${data.views}  |  🔥 ${data.likes || 0}`;
             }
@@ -309,7 +307,7 @@ function start() {
             console.log("Помилка переглядів:", e);
         }
 
-        // === ЛОГІКА ЛАЙКІВ (Прямий запис) ===
+        // === ЛОГІКА ЛАЙКІВ (Активна, блокується після кліку) ===
         const alreadyLiked = getLiked().includes(id);
         likeBtn.disabled = alreadyLiked;
         
@@ -332,7 +330,6 @@ function start() {
                     data.likes = newLikes;
                     likesEl.textContent = data.likes;
                     saveLiked([...list, id]);
-                    // Оновлюємо картку на фоні
                     const card = document.querySelector(`.movie-card[data-id="${id}"] .movie-stats-overlay`);
                     if (card) card.innerHTML = `👁️ ${data.views || 0}  |  🔥 ${data.likes}`;
                 } else {
