@@ -4,6 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Адмін-панель — BanderiZZation</title>
+    <!--
+    ===================================================================
+    Версія:       2.5.0 (BanderiZZation! Hub — admin.html)
+    Дата, час:    2026-10-31
+    Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
+    -------------------------------------------------------------------
+    Еволюція змін:
+     Зміни 2.5.0 відносно 2.4.0:
+      1. ВИПРАВЛЕНО ЧЕРГУ ЗАВАНТАЖЕННЯ. Тепер наступний файл починає
+         вантажитися ТІЛЬКИ після повного завершення попереднього 
+         (створення запису в базі), щоб не перевантажувати Render.
+      2. Додано безпечний вхід через Supabase Auth (форма email/пароль).
+    ===================================================================
+    -->
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -11,7 +25,7 @@
             color: #ffffff;
             display: flex;
             justify-content: center;
-            align-items: center; /* Центруємо форму входу */
+            align-items: center; 
             min-height: 100vh;
             margin: 0;
             padding: 20px;
@@ -29,7 +43,6 @@
         }
         .login-container h2 { color: #38ff3b; margin-top: 0; }
         
-        /* Стилі для адмінки (ті самі, що були) */
         .admin-container {
             background: rgba(15, 23, 42, 0.8);
             border: 1px solid #3b82f6;
@@ -86,7 +99,6 @@
         .btn-save { background: #3b82f6; color: white; }
         .save-status { font-size: 0.8rem; text-align: center; margin-top: 5px; }
 
-        /* Модальне вікно */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.7); z-index: 1000; justify-content: center; align-items: center;
@@ -130,7 +142,7 @@
     <p id="loginError" style="color: #ef4444; font-size: 0.9rem; margin-top: 10px; display: none;"></p>
 </div>
 
-<!-- АДМІНКА (показується після входу) -->
+<!-- АДМІНКА -->
 <div class="admin-container" id="adminPanel">
     <div class="header-actions">
         <h2>📦 Завантаження контенту</h2>
@@ -188,7 +200,7 @@
     const SUPABASE_ANON_KEY = 'sb_publishable_AlkDR5OTAyQjce5VYnLFOg_RlENaNLu';
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Елементи інтерфейсу
+    // Елементи
     const loginPanel = document.getElementById('loginPanel');
     const adminPanel = document.getElementById('adminPanel');
     const loginEmail = document.getElementById('loginEmail');
@@ -212,7 +224,7 @@
     const videoFileInput = document.getElementById('videoFileInput');
     const uploadedCardsContainer = document.getElementById('uploadedCardsContainer');
 
-    // === ПЕРЕВІРКА СЕСІЇ ПРИ ЗАВАНТАЖЕННІ ===
+    // === АВТОРИЗАЦІЯ ===
     async function checkSession() {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
@@ -224,7 +236,6 @@
     }
     checkSession();
 
-    // === ЛОГІН ===
     loginBtn.addEventListener('click', async () => {
         loginBtn.disabled = true;
         loginBtn.textContent = 'Вхід...';
@@ -232,7 +243,6 @@
 
         const email = loginEmail.value.trim();
         const password = loginPassword.value;
-
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
         if (error) {
@@ -250,7 +260,6 @@
         adminPanel.style.display = 'block';
     }
 
-    // === ВИХІД ===
     logoutBtn.addEventListener('click', async () => {
         await supabase.auth.signOut();
         window.location.reload();
@@ -267,7 +276,7 @@
             .trim();
     }
 
-    // === ЧЕРГА ЗАВАНТАЖЕННЯ ===
+    // === ЧЕРГА ЗАВАНТАЖЕННЯ (ВИПРАВЛЕНО) ===
     let uploadQueue = [];
     let isUploading = false;
 
@@ -291,32 +300,36 @@
         processQueue();
     }
 
+    // Головна функція черги
     async function processQueue() {
         if (isUploading) return;
         isUploading = true;
+        
         while (uploadQueue.length > 0) {
             const file = uploadQueue.shift();
-            await handleFileUpload(file);
+            // Чекаємо (await), поки файл повністю не завантажиться і не запишеться в базу
+            await handleFileUpload(file); 
         }
+        
         isUploading = false;
     }
 
-    // === ЗАВАНТАЖЕННЯ ===
-    async function handleFileUpload(file) {
-        const progressContainer = document.getElementById('uploadProgress');
-        const progressBar = document.getElementById('progressBar');
-        const progressText = document.getElementById('progressText');
+    // Функція завантаження одного файлу (повертає Promise, щоб черга чекала)
+    function handleFileUpload(file) {
+        return new Promise((resolve) => {
+            const progressContainer = document.getElementById('uploadProgress');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
 
-        progressContainer.style.display = 'block';
-        progressBar.style.width = '0%';
-        progressBar.style.background = '#22c55e';
-        progressText.textContent = `Завантажуємо: ${file.name}`;
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressBar.style.background = '#22c55e';
+            progressText.textContent = `Завантажуємо: ${file.name}`;
 
-        const formData = new FormData();
-        formData.append('video', file);
-        formData.append('fileName', file.name);
+            const formData = new FormData();
+            formData.append('video', file);
+            formData.append('fileName', file.name);
 
-        try {
             const xhr = new XMLHttpRequest();
             xhr.open('POST', 'https://banderizzation-backend.onrender.com/api/upload-video', true);
 
@@ -358,20 +371,17 @@
                     progressText.textContent = `Помилка завантаження: ${xhr.status}`;
                     progressBar.style.background = '#ef4444';
                 }
+                resolve(); // Сигнал, що цей файл завершено, можна брати наступний
             };
 
             xhr.onerror = () => {
                 progressText.textContent = `Помилка мережі`;
                 progressBar.style.background = '#ef4444';
+                resolve(); // Навіть при помилці рухаємось далі
             };
 
             xhr.send(formData);
-
-        } catch (error) {
-            console.error(error);
-            progressText.textContent = 'Помилка: ' + error.message;
-            progressBar.style.background = '#ef4444';
-        }
+        });
     }
 
     // === КАРТКА РЕДАГУВАННЯ ===
