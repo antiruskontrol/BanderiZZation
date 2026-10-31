@@ -318,35 +318,37 @@ function start() {
         loadComments(id);
 
         // Оновлення переглядів (виправлено)
+               // 1. Викликаємо функцію в базі
         const viewRpc = IS_CARTOON ? 'increment_cartoon_views' : 'increment_views';
-     
-        const { data: viewResult, error: viewError } = await supabase.rpc(viewRpc, { row_id: Number(id) });
-        
-        if (viewError) {
-            console.error('[BZ-PLAYER] ПОМИЛКА RPC переглядів:', viewError);
-        } else if (viewResult !== null) {
-            data.views = viewResult;
+        await supabase.rpc(viewRpc, { row_id: Number(id) });
+
+        // 2. Одразу читаємо свіже число з бази (це 100% спрацює)
+        const { data: freshData } = await supabase
+            .from(TABLE_MOVIES)
+            .select('views')
+            .eq('id', id)
+            .single();
+
+        if (freshData) {
+            data.views = freshData.views;
             viewsEl.textContent = data.views;
         }
-
         // Логіка лайків (виправлено)
-        const alreadyLiked = getLiked().includes(id);
-        likeBtn.disabled = alreadyLiked;
-        likeBtn.onclick = async () => {
-            const list = getLiked();
-            if (list.includes(id)) return;
-            
-            likeBtn.disabled = true;
+                    // 1. Викликаємо функцію
             const likeRpc = IS_CARTOON ? 'increment_cartoon_likes' : 'increment_likes';
-            const { data: likeResult, error: likeError } = await supabase.rpc(likeRpc, { row_id: Number(id) });
+            await supabase.rpc(likeRpc, { row_id: Number(id) });
 
-            if (likeError) {
-                console.error('[BZ-PLAYER] ПОМИЛКА RPC лайків:', likeError);
-                likeBtn.disabled = false; // Розблоковуємо при помилці
-            } else if (likeResult !== null) {
-                data.likes = likeResult;
+            // 2. Читаємо свіже число
+            const { data: freshLikeData } = await supabase
+                .from(TABLE_MOVIES)
+                .select('likes')
+                .eq('id', id)
+                .single();
+
+            if (freshLikeData) {
+                data.likes = freshLikeData.likes;
                 likesEl.textContent = data.likes;
-                saveLiked([...list, id]); // Зберігаємо тільки після успіху
+                saveLiked([...list, id]);
             }
         };
     }
