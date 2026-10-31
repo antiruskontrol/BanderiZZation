@@ -1,13 +1,14 @@
 <!--
 ===================================================================
-Версія:       1.0.3 (BanderiZZation! Hub — multoskop.html)
-Дата, час:    2026-10-30
+Версія:       1.0.4 (BanderiZZation! Hub — multoskop.html)
+Дата, час:    2026-10-31
 Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
 -------------------------------------------------------------------
 Еволюція змін:
- Зміни 1.0.3 відносно 1.0.2:
-  1. Додано кнопку-шестерню (⚙️) у верхню панель для швидкого 
-     доступу до адмін-панелі (admin.html).
+ Зміни 1.0.4 відносно 1.0.3:
+  1. Додано індикатор завантаження (спінер) всередині плеєра, 
+     який показується, поки Render генерує тимчасове посилання 
+     на відео.
 ===================================================================
 -->
 <!DOCTYPE html>
@@ -20,6 +21,51 @@
     <link rel="stylesheet" href="player.css">
     <script>document.documentElement.className += ' bz-pre';</script>
     <link rel="icon" type="image/png" sizes="144x144" href="favicon.png">
+    
+    <style>
+        /* Стилі для екрану завантаження плеєра */
+        #loadingOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(11, 15, 25, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            border-radius: 8px;
+            color: #38ff3b;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .spinner {
+            border: 4px solid rgba(56, 255, 59, 0.2);
+            border-top: 4px solid #38ff3b;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #loadingOverlay p {
+            margin: 5px 0;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+        #loadingOverlay small {
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+    </style>
 </head>
 <body class="sub-page page-multoskop page-player" data-collection="cartoons" data-label="Мультоскоп" data-empty="Схоже, мультфільмів у базі ще немає...">
 
@@ -39,7 +85,14 @@
     <div id="videoModal" class="player-modal" aria-hidden="true">
         <div class="player-box">
             <button class="player-close" id="closePlayerBtn" aria-label="Закрити">×</button>
-            <div class="video-wrapper">
+            <div class="video-wrapper" style="position: relative;">
+                <!-- Екран завантаження -->
+                <div id="loadingOverlay" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Зачекайте...</p>
+                    <small>Генеруємо безпечні ключі для доступу до відео</small>
+                </div>
+
                 <iframe id="playerIframe" src="about:blank" allow="autoplay; fullscreen" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>
             </div>
 
