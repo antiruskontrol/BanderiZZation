@@ -328,31 +328,34 @@ function start() {
         // === ЛОГІКА ЛАЙКІВ (метод прямого читання) ===
         const alreadyLiked = getLiked().includes(id);
         likeBtn.disabled = alreadyLiked;
-        likeBtn.onclick = async () => {
+       likeBtn.onclick = async () => {
             const list = getLiked();
             if (list.includes(id)) return;
             
             likeBtn.disabled = true;
-            const likeRpc = IS_CARTOON ? 'increment_cartoon_likes' : 'increment_likes';
             
-            await supabase.rpc(likeRpc, { row_id: Number(id) });
+            // 1. Беремо поточне число лайків, яке ми бачимо на екрані, і додаємо 1
+            // (якщо на екрані 0, то буде 1; якщо 1, то буде 2)
+            const currentLikes = Number(data.likes) || 0; 
+            const newLikesValue = currentLikes + 1;
 
-            const { data: freshLikeData } = await supabase
+            // 2. Прямо кажемо базі: "Запиши сюди ось це нове число"
+            const { error: updateError } = await supabase
                 .from(TABLE_MOVIES)
-                .select('likes')
-                .eq('id', id)
-                .single();
+                .update({ likes: newLikesValue })
+                .eq('id', id);
 
-            if (freshLikeData) {
-                data.likes = freshLikeData.likes;
-                likesEl.textContent = data.likes;
-                saveLiked([...list, id]);
-            } else {
+            if (updateError) {
+                console.error('Помилка оновлення лайків:', updateError);
                 likeBtn.disabled = false;
+                return;
             }
-        };
-    }
 
+            // 3. Якщо база прийняла — оновлюємо екран
+            data.likes = newLikesValue;
+            likesEl.textContent = data.likes;
+            saveLiked([...list, id]);
+        };
     function closePlayer(reason) {
         if (!modal.classList.contains('is-open')) return;
         modal.classList.remove('is-open');
