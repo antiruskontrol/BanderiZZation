@@ -1,21 +1,17 @@
 /*
 ===================================================================
-Версія:       2.4.1 (BanderiZZation! Hub — player.js)
+Версія:       2.4.2 (BanderiZZation! Hub — player.js)
 Дата, час:    2026-10-31
 Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
 -------------------------------------------------------------------
 Еволюція змін:
- Зміни 2.4.1 відносно 2.4.0:
-  1. ВИПРАВЛЕНО критичну помилку: видалено дублікат змінної 
-     'viewResult', через який скрипт повністю зупинявся 
-     (SyntaxError).
-  2. Оновлено логіку переглядів та лайків: тепер скрипт чекає 
-     на відповідь від RPC-функцій Supabase і бере точне нове 
-     значення з бази (замість простого додавання +1).
-  3. Додано обробку помилок для RPC (вивід у консоль).
-  4. Оптимізовано Realtime-канал: тепер він оновлює лічильники 
-     лише на конкретній картці та в плеєрі, не перемальовуючи 
-     весь список (додано data-id на картки).
+ Зміни 2.4.2 відносно 2.4.1:
+  1. Виправлено проблему з кешем Supabase JS SDK.
+  2. Замість очікування відповіді від RPC (яка через кеш 
+     повертала null), тепер одразу після виклику функції 
+     робиться SELECT-запит для отримання свіжого числа 
+     (views/likes) прямо з бази.
+  3. Додано Number(id) для гарантованої передачі числа (bigint).
 ===================================================================
 */
 
@@ -153,7 +149,7 @@ function start() {
             card.className = 'movie-card';
             card.tabIndex = 0;
             card.setAttribute('role', 'button');
-            card.dataset.id = id; // Важливо для Realtime-оновлень
+            card.dataset.id = id; 
 
             const posterSrc = data.posterUrl || 'poster1.jfif';
             const displayTitle = data.title || 'Без назви';
@@ -190,19 +186,16 @@ function start() {
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: TABLE_MOVIES }, (payload) => {
           const updatedId = payload.new.id;
           
-          // Оновлюємо дані в пам'яті
           if (itemsById.has(updatedId)) {
               itemsById.get(updatedId).views = payload.new.views;
               itemsById.get(updatedId).likes = payload.new.likes;
           }
           
-          // Якщо відео зараз відкрите — оновлюємо цифри в плеєрі
           if (activeId === updatedId) {
               viewsEl.textContent = payload.new.views;
               likesEl.textContent = payload.new.likes;
           }
           
-          // Оновлюємо цифри на самій картці в списку
           const card = document.querySelector(`.movie-card[data-id="${updatedId}"]`);
           if (card) {
               const stats = card.querySelector('.movie-stats-overlay');
@@ -317,12 +310,10 @@ function start() {
 
         loadComments(id);
 
-        // Оновлення переглядів (виправлено)
-               // 1. Викликаємо функцію в базі
+        // === ОНОВЛЕННЯ ПЕРЕГЛЯДІВ (метод прямого читання) ===
         const viewRpc = IS_CARTOON ? 'increment_cartoon_views' : 'increment_views';
         await supabase.rpc(viewRpc, { row_id: Number(id) });
 
-        // 2. Одразу читаємо свіже число з бази (це 100% спрацює)
         const { data: freshData } = await supabase
             .from(TABLE_MOVIES)
             .select('views')
@@ -333,12 +324,19 @@ function start() {
             data.views = freshData.views;
             viewsEl.textContent = data.views;
         }
-        // Логіка лайків (виправлено)
-                    // 1. Викликаємо функцію
+
+        // === ЛОГІКА ЛАЙКІВ (метод прямого читання) ===
+        const alreadyLiked = getLiked().includes(id);
+        likeBtn.disabled = alreadyLiked;
+        likeBtn.onclick = async () => {
+            const list = getLiked();
+            if (list.includes(id)) return;
+            
+            likeBtn.disabled = true;
             const likeRpc = IS_CARTOON ? 'increment_cartoon_likes' : 'increment_likes';
+            
             await supabase.rpc(likeRpc, { row_id: Number(id) });
 
-            // 2. Читаємо свіже число
             const { data: freshLikeData } = await supabase
                 .from(TABLE_MOVIES)
                 .select('likes')
@@ -349,6 +347,8 @@ function start() {
                 data.likes = freshLikeData.likes;
                 likesEl.textContent = data.likes;
                 saveLiked([...list, id]);
+            } else {
+                likeBtn.disabled = false;
             }
         };
     }
