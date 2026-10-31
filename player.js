@@ -1,17 +1,18 @@
 /*
 ===================================================================
-Версія:       2.4.2 (BanderiZZation! Hub — player.js)
+Версія:       2.4.3 (BanderiZZation! Hub — player.js)
 Дата, час:    2026-10-31
 Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
 -------------------------------------------------------------------
 Еволюція змін:
- Зміни 2.4.2 відносно 2.4.1:
-  1. Виправлено проблему з кешем Supabase JS SDK.
-  2. Замість очікування відповіді від RPC (яка через кеш 
-     повертала null), тепер одразу після виклику функції 
-     робиться SELECT-запит для отримання свіжого числа 
-     (views/likes) прямо з бази.
-  3. Додано Number(id) для гарантованої передачі числа (bigint).
+ Зміни 2.4.3 відносно 2.4.2:
+  1. Повністю переписано логіку лайків та переглядів. 
+     Тепер використовується метод прямого UPDATE (ми беремо поточне
+     число, додаємо 1 і записуємо в базу), щоб обійти будь-які
+     проблеми з SQL-RPC функціями та кешем.
+  2. Додано захисні блоки try...catch, щоб скрипт не "падав" 
+     повністю, якщо станеться помилка з мережею.
+  3. Відновлено відображення карток та плеєра.
 ===================================================================
 */
 
@@ -149,7 +150,7 @@ function start() {
             card.className = 'movie-card';
             card.tabIndex = 0;
             card.setAttribute('role', 'button');
-            card.dataset.id = id; 
+            card.dataset.id = id;
 
             const posterSrc = data.posterUrl || 'poster1.jfif';
             const displayTitle = data.title || 'Без назви';
@@ -180,29 +181,6 @@ function start() {
     }
 
     loadMovies();
-
-    // Оновлений Realtime-канал (без перемальовування всього списку)
-    supabase.channel(`custom-all-channel-${TABLE_MOVIES}`)
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: TABLE_MOVIES }, (payload) => {
-          const updatedId = payload.new.id;
-          
-          if (itemsById.has(updatedId)) {
-              itemsById.get(updatedId).views = payload.new.views;
-              itemsById.get(updatedId).likes = payload.new.likes;
-          }
-          
-          if (activeId === updatedId) {
-              viewsEl.textContent = payload.new.views;
-              likesEl.textContent = payload.new.likes;
-          }
-          
-          const card = document.querySelector(`.movie-card[data-id="${updatedId}"]`);
-          if (card) {
-              const stats = card.querySelector('.movie-stats-overlay');
-              if (stats) stats.innerHTML = `👁️ ${payload.new.views}  |  🔥 ${payload.new.likes}`;
-          }
-      })
-      .subscribe();
 
     // ===== КОМЕНТАРІ =====
     let commentChannel = null;
@@ -310,52 +288,63 @@ function start() {
 
         loadComments(id);
 
-        // === ОНОВЛЕННЯ ПЕРЕГЛЯДІВ (метод прямого читання) ===
-        const viewRpc = IS_CARTOON ? 'increment_cartoon_views' : 'increment_views';
-        await supabase.rpc(viewRpc, { row_id: Number(id) });
+        // === ОНОВЛЕННЯ ПЕРЕГЛЯДІВ (Прямий запис) ===
+        try {
+            const currentViews = Number(data.views) || 0;
+            const newViews = currentViews + 1;
+            
+            const { error: updateErr } = await supabase
+                .from(TABLE_MOVIES)
+                .update({ views: newViews })
+                .eq('id', id);
 
-        const { data: freshData } = await supabase
-            .from(TABLE_MOVIES)
-            .select('views')
-            .eq('id', id)
-            .single();
-
-        if (freshData) {
-            data.views = freshData.views;
-            viewsEl.textContent = data.views;
+            if (!updateErr) {
+                data.views = newViews;
+                viewsEl.textContent = data.views;
+                // Оновлюємо картку на фоні
+                const card = document.querySelector(`.movie-card[data-id="${id}"] .movie-stats-overlay`);
+                if (card) card.innerHTML = `👁️ ${data.views}  |  🔥 ${data.likes || 0}`;
+            }
+        } catch (e) {
+            console.log("Помилка переглядів:", e);
         }
 
-        // === ЛОГІКА ЛАЙКІВ (метод прямого читання) ===
+        // === ЛОГІКА ЛАЙКІВ (Прямий запис) ===
         const alreadyLiked = getLiked().includes(id);
         likeBtn.disabled = alreadyLiked;
-       likeBtn.onclick = async () => {
+        
+        likeBtn.onclick = async () => {
             const list = getLiked();
             if (list.includes(id)) return;
             
             likeBtn.disabled = true;
             
-            // 1. Беремо поточне число лайків, яке ми бачимо на екрані, і додаємо 1
-            // (якщо на екрані 0, то буде 1; якщо 1, то буде 2)
-            const currentLikes = Number(data.likes) || 0; 
-            const newLikesValue = currentLikes + 1;
+            try {
+                const currentLikes = Number(data.likes) || 0;
+                const newLikes = currentLikes + 1;
 
-            // 2. Прямо кажемо базі: "Запиши сюди ось це нове число"
-            const { error: updateError } = await supabase
-                .from(TABLE_MOVIES)
-                .update({ likes: newLikesValue })
-                .eq('id', id);
+                const { error: updateErr } = await supabase
+                    .from(TABLE_MOVIES)
+                    .update({ likes: newLikes })
+                    .eq('id', id);
 
-            if (updateError) {
-                console.error('Помилка оновлення лайків:', updateError);
+                if (!updateErr) {
+                    data.likes = newLikes;
+                    likesEl.textContent = data.likes;
+                    saveLiked([...list, id]);
+                    // Оновлюємо картку на фоні
+                    const card = document.querySelector(`.movie-card[data-id="${id}"] .movie-stats-overlay`);
+                    if (card) card.innerHTML = `👁️ ${data.views || 0}  |  🔥 ${data.likes}`;
+                } else {
+                    likeBtn.disabled = false;
+                }
+            } catch (e) {
+                console.log("Помилка лайків:", e);
                 likeBtn.disabled = false;
-                return;
             }
-
-            // 3. Якщо база прийняла — оновлюємо екран
-            data.likes = newLikesValue;
-            likesEl.textContent = data.likes;
-            saveLiked([...list, id]);
         };
+    }
+
     function closePlayer(reason) {
         if (!modal.classList.contains('is-open')) return;
         modal.classList.remove('is-open');
