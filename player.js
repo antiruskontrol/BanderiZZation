@@ -190,10 +190,29 @@ function start() {
     loadMovies();
 
     supabase.channel(`custom-all-channel-${TABLE_MOVIES}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: TABLE_MOVIES }, (payload) => {
-          loadMovies(); 
-      })
-      .subscribe();
+  .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: TABLE_MOVIES }, (payload) => {
+      const updatedId = payload.new.id;
+      
+      // Оновлюємо дані в пам'яті
+      if (itemsById.has(updatedId)) {
+          itemsById.get(updatedId).views = payload.new.views;
+          itemsById.get(updatedId).likes = payload.new.likes;
+      }
+      
+      // Якщо відео зараз відкрите — оновлюємо цифри в плеєрі
+      if (activeId === updatedId) {
+          viewsEl.textContent = payload.new.views;
+          likesEl.textContent = payload.new.likes;
+      }
+      
+      // Оновлюємо цифри на самій картці в списку
+      const card = document.querySelector(`.movie-card[data-id="${updatedId}"]`);
+      if (card) {
+          const stats = card.querySelector('.movie-stats-overlay');
+          if (stats) stats.innerHTML = `👁️ ${payload.new.views}  |  🔥 ${payload.new.likes}`;
+      }
+  })
+  .subscribe();
 
     // ===== КОМЕНТАРІ =====
     let commentChannel = null;
@@ -302,22 +321,31 @@ function start() {
         loadComments(id);
 
         const viewRpc = IS_CARTOON ? 'increment_cartoon_views' : 'increment_views';
-        await supabase.rpc(viewRpc, { row_id: id });
-        data.views = (data.views || 0) + 1;
-        viewsEl.textContent = data.views;
+const { data: viewResult, error: viewError } = await supabase.rpc(viewRpc, { row_id: id });
+
+if (!viewError && viewResult !== null) {
+    data.views = viewResult;
+    viewsEl.textContent = data.views;
+}
 
         const alreadyLiked = getLiked().includes(id);
         likeBtn.disabled = alreadyLiked;
         likeBtn.onclick = async () => {
             const list = getLiked();
-            if (list.includes(id)) return;
-            likeBtn.disabled = true;
-            saveLiked([...list, id]);
-            
-            const likeRpc = IS_CARTOON ? 'increment_cartoon_likes' : 'increment_likes';
-            await supabase.rpc(likeRpc, { row_id: id });
-            data.likes = (data.likes || 0) + 1;
-            likesEl.textContent = data.likes;
+if (list.includes(id)) return;
+likeBtn.disabled = true;
+
+const likeRpc = IS_CARTOON ? 'increment_cartoon_likes' : 'increment_likes';
+const { data: likeResult, error: likeError } = await supabase.rpc(likeRpc, { row_id: id });
+
+if (!likeError && likeResult !== null) {
+    data.likes = likeResult;
+    likesEl.textContent = data.likes;
+    saveLiked([...list, id]); // Зберігаємо тільки після успіху
+} else {
+    console.error('Помилка лайка:', likeError);
+    likeBtn.disabled = false; // Розблоковуємо, якщо помилка
+}
         };
     }
 
