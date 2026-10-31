@@ -1,17 +1,15 @@
 /*
 ===================================================================
-Версія:       2.4.4 (BanderiZZation! Hub — player.js)
+Версія:       2.4.5 (BanderiZZation! Hub — player.js)
 Дата, час:    2026-10-31
 Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
 -------------------------------------------------------------------
 Еволюція змін:
- Зміни 2.4.4 відносно 2.4.3:
-  1. Виправлено логіку лайків. Тепер кнопка активна за замовчуванням. 
-     При натисканні: додається +1, кнопка блокується, стан 
-     зберігається в localStorage (щоб запобігти накрутці).
-  2. Перегляди та лайки оновлюються методом прямого запису 
-     (UPDATE), що гарантує 100% працездатність як для фільмів, 
-     так і для мультфільмів.
+ Зміни 2.4.5 відносно 2.4.4:
+  1. Лайки знову переведено на SQL-функції (RPC), оскільки 
+     прямий UPDATE блокується політиками RLS Supabase.
+  2. Додано захисне перетворення Number(id) для RPC.
+  3. Перегляди залишені на прямому UPDATE (вони працювали).
 ===================================================================
 */
 
@@ -307,11 +305,7 @@ function start() {
             console.log("Помилка переглядів:", e);
         }
 
-        // === ЛОГІКА ЛАЙКІВ (Активна, блокується після кліку) ===
-        const alreadyLiked = getLiked().includes(id);
-        likeBtn.disabled = alreadyLiked;
-        
-                // === ЛОГІКА ЛАЙКІВ (через RPC) ===
+        // === ЛОГІКА ЛАЙКІВ (RPC) ===
         const alreadyLiked = getLiked().includes(id);
         likeBtn.disabled = alreadyLiked;
         
@@ -319,7 +313,7 @@ function start() {
             const list = getLiked();
             if (list.includes(id)) return;
             
-            likeBtn.disabled = true;
+            likeBtn.disabled = true; // Блокуємо на час запиту
             
             try {
                 const likeRpc = IS_CARTOON ? 'increment_cartoon_likes' : 'increment_likes';
@@ -327,22 +321,20 @@ function start() {
 
                 if (likeError) {
                     console.error("Помилка RPC лайків:", likeError);
-                    likeBtn.disabled = false; // Якщо помилка — розблоковуємо
+                    likeBtn.disabled = false; // Розблоковуємо при помилці
                     return;
                 }
 
-                // Оновлюємо цифру на екрані
+                // Якщо все добре:
                 data.likes = newLikesResult;
                 likesEl.textContent = data.likes;
                 saveLiked([...list, id]);
-
-                // Оновлюємо картку на фоні
+                
                 const card = document.querySelector(`.movie-card[data-id="${id}"] .movie-stats-overlay`);
                 if (card) card.innerHTML = `👁️ ${data.views || 0}  |  🔥 ${data.likes}`;
-                
             } catch (e) {
                 console.log("Помилка лайків:", e);
-                likeBtn.disabled = false;
+                likeBtn.disabled = false; // Розблоковуємо при помилці
             }
         };
     }
