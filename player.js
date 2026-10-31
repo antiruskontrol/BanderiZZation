@@ -1,15 +1,16 @@
 /*
 ===================================================================
-Версія:       2.4.5 (BanderiZZation! Hub — player.js)
+Версія:       2.4.6 (BanderiZZation! Hub — player.js)
 Дата, час:    2026-10-31
 Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
 -------------------------------------------------------------------
 Еволюція змін:
- Зміни 2.4.5 відносно 2.4.4:
-  1. Лайки знову переведено на SQL-функції (RPC), оскільки 
-     прямий UPDATE блокується політиками RLS Supabase.
-  2. Додано захисне перетворення Number(id) для RPC.
-  3. Перегляди залишені на прямому UPDATE (вони працювали).
+ Зміни 2.4.6 відносно 2.4.5:
+  1. Лайки переведено на метод прямого UPDATE (як і перегляди).
+     Це обійшло проблеми з RPC-функціями та кешем Supabase.
+  2. Додано правильне блокування кнопки лайка: вона активна, 
+     поки користувач не натисне, після чого блокується назавжди
+     (стан зберігається в localStorage).
 ===================================================================
 */
 
@@ -305,9 +306,9 @@ function start() {
             console.log("Помилка переглядів:", e);
         }
 
-        // === ЛОГІКА ЛАЙКІВ (RPC) ===
+        // === ЛОГІКА ЛАЙКІВ (Прямий запис) ===
         const alreadyLiked = getLiked().includes(id);
-        likeBtn.disabled = alreadyLiked;
+        likeBtn.disabled = alreadyLiked; // Блокуємо, якщо вже ставили
         
         likeBtn.onclick = async () => {
             const list = getLiked();
@@ -316,25 +317,28 @@ function start() {
             likeBtn.disabled = true; // Блокуємо на час запиту
             
             try {
-                const likeRpc = IS_CARTOON ? 'increment_cartoon_likes' : 'increment_likes';
-                const { data: newLikesResult, error: likeError } = await supabase.rpc(likeRpc, { row_id: Number(id) });
+                const currentLikes = Number(data.likes) || 0;
+                const newLikes = currentLikes + 1;
 
-                if (likeError) {
-                    console.error("Помилка RPC лайків:", likeError);
+                const { error: updateErr } = await supabase
+                    .from(TABLE_MOVIES)
+                    .update({ likes: newLikes })
+                    .eq('id', id);
+
+                if (!updateErr) {
+                    data.likes = newLikes;
+                    likesEl.textContent = data.likes;
+                    saveLiked([...list, id]); // Запам'ятовуємо, що лайкнули
+                    
+                    const card = document.querySelector(`.movie-card[data-id="${id}"] .movie-stats-overlay`);
+                    if (card) card.innerHTML = `👁️ ${data.views || 0}  |  🔥 ${data.likes}`;
+                } else {
+                    console.error("Помилка оновлення лайків:", updateErr);
                     likeBtn.disabled = false; // Розблоковуємо при помилці
-                    return;
                 }
-
-                // Якщо все добре:
-                data.likes = newLikesResult;
-                likesEl.textContent = data.likes;
-                saveLiked([...list, id]);
-                
-                const card = document.querySelector(`.movie-card[data-id="${id}"] .movie-stats-overlay`);
-                if (card) card.innerHTML = `👁️ ${data.views || 0}  |  🔥 ${data.likes}`;
             } catch (e) {
                 console.log("Помилка лайків:", e);
-                likeBtn.disabled = false; // Розблоковуємо при помилці
+                likeBtn.disabled = false;
             }
         };
     }
