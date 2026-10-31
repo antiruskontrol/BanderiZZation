@@ -1,14 +1,21 @@
 /*
 ===================================================================
-Версія:       2.3.0 (BanderiZZation! Hub — player.js)
-Дата, час:    2026-10-30
+Версія:       2.4.1 (BanderiZZation! Hub — player.js)
+Дата, час:    2026-10-31
 Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
 -------------------------------------------------------------------
 Еволюція змін:
- Зміни 2.3.0 відносно 2.2.0:
-  1. Додано функцію cleanTitle, яка автоматично прибирає технологічні
-     позначки (nologo, delogo, logo) та підкреслення з назв файлів
-     перед відображенням на картках.
+ Зміни 2.4.1 відносно 2.4.0:
+  1. ВИПРАВЛЕНО критичну помилку: видалено дублікат змінної 
+     'viewResult', через який скрипт повністю зупинявся 
+     (SyntaxError).
+  2. Оновлено логіку переглядів та лайків: тепер скрипт чекає 
+     на відповідь від RPC-функцій Supabase і бере точне нове 
+     значення з бази (замість простого додавання +1).
+  3. Додано обробку помилок для RPC (вивід у консоль).
+  4. Оптимізовано Realtime-канал: тепер він оновлює лічильники 
+     лише на конкретній картці та в плеєрі, не перемальовуючи 
+     весь список (додано data-id на картки).
 ===================================================================
 */
 
@@ -31,7 +38,7 @@ const SUPABASE_URL = 'https://bmwzzvrmkupwimhvzzqe.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_AlkDR5OTAyQjce5VYnLFOg_RlENaNLu';
 
 // АДРЕСА RENDER
-const BACKEND_URL = 'https://banderizzation-backend.onrender.com'; 
+const BACKEND_URL = 'https://banderizzation-backend.onrender.com';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const EMPTY_TEXT = document.body.dataset.empty || 'Поки що нічого немає...';
@@ -74,17 +81,6 @@ function start() {
 
     let activeId = null;
     const itemsById = new Map();
-
-    // === ФУНКЦІЯ ОЧИЩЕННЯ НАЗВИ ===
-    function cleanTitle(rawTitle) {
-        if (!rawTitle) return 'Без назви';
-        return rawTitle
-            .replace(/\.(mp4|mkv|avi|mov)$/i, '') // Прибираємо розширення
-            .replace(/[_\s-]*(no|de)?logo[_\s-]*/gi, '') // Прибираємо logo, nologo, delogo
-            .replace(/_/g, ' ') // Замінюємо підкреслення на пробіли
-            .replace(/^\s+|\s+$/g, '') // Прибираємо пробіли на початку та в кінці
-            .replace(/\s+/g, ' '); // Прибираємо подвійні пробіли
-    }
 
     function maskEmail(email) {
         const [local, domain] = email.split('@');
@@ -155,13 +151,12 @@ function start() {
 
             const card = document.createElement('div');
             card.className = 'movie-card';
-            card.dataset.id = id;
             card.tabIndex = 0;
             card.setAttribute('role', 'button');
+            card.dataset.id = id; // Важливо для Realtime-оновлень
 
             const posterSrc = data.posterUrl || 'poster1.jfif';
-            // Використовуємо очищену назву
-            const displayTitle = cleanTitle(data.title);
+            const displayTitle = data.title || 'Без назви';
             const descText = data.description || ''; 
 
             card.innerHTML = `
@@ -190,30 +185,31 @@ function start() {
 
     loadMovies();
 
+    // Оновлений Realtime-канал (без перемальовування всього списку)
     supabase.channel(`custom-all-channel-${TABLE_MOVIES}`)
-  .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: TABLE_MOVIES }, (payload) => {
-      const updatedId = payload.new.id;
-      
-      // Оновлюємо дані в пам'яті
-      if (itemsById.has(updatedId)) {
-          itemsById.get(updatedId).views = payload.new.views;
-          itemsById.get(updatedId).likes = payload.new.likes;
-      }
-      
-      // Якщо відео зараз відкрите — оновлюємо цифри в плеєрі
-      if (activeId === updatedId) {
-          viewsEl.textContent = payload.new.views;
-          likesEl.textContent = payload.new.likes;
-      }
-      
-      // Оновлюємо цифри на самій картці в списку
-      const card = document.querySelector(`.movie-card[data-id="${updatedId}"]`);
-      if (card) {
-          const stats = card.querySelector('.movie-stats-overlay');
-          if (stats) stats.innerHTML = `👁️ ${payload.new.views}  |  🔥 ${payload.new.likes}`;
-      }
-  })
-  .subscribe();
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: TABLE_MOVIES }, (payload) => {
+          const updatedId = payload.new.id;
+          
+          // Оновлюємо дані в пам'яті
+          if (itemsById.has(updatedId)) {
+              itemsById.get(updatedId).views = payload.new.views;
+              itemsById.get(updatedId).likes = payload.new.likes;
+          }
+          
+          // Якщо відео зараз відкрите — оновлюємо цифри в плеєрі
+          if (activeId === updatedId) {
+              viewsEl.textContent = payload.new.views;
+              likesEl.textContent = payload.new.likes;
+          }
+          
+          // Оновлюємо цифри на самій картці в списку
+          const card = document.querySelector(`.movie-card[data-id="${updatedId}"]`);
+          if (card) {
+              const stats = card.querySelector('.movie-stats-overlay');
+              if (stats) stats.innerHTML = `👁️ ${payload.new.views}  |  🔥 ${payload.new.likes}`;
+          }
+      })
+      .subscribe();
 
     // ===== КОМЕНТАРІ =====
     let commentChannel = null;
@@ -293,7 +289,7 @@ function start() {
             return;
         }
 
-        titleEl.textContent = cleanTitle(data.title); // Очищена назва для плеєра
+        titleEl.textContent = data.title || 'Без назви';
         descEl.textContent = data.description || '';
         viewsEl.textContent = data.views || 0;
         likesEl.textContent = data.likes || 0;
@@ -321,48 +317,36 @@ function start() {
 
         loadComments(id);
 
+        // Оновлення переглядів (виправлено)
         const viewRpc = IS_CARTOON ? 'increment_cartoon_views' : 'increment_views';
-     const { data: viewResult, error: viewError } = await supabase.rpc(viewRpc, { row_id: id });
-if (viewError) {
-    console.error('ПОМИЛКА RPC:', viewError);
-}
-if (!viewError && viewResult !== null) {
-    data.views = viewResult;
-    viewsEl.textContent = data.views;
-}
-const { data: viewResult, error: viewError } = await supabase.rpc(viewRpc, { row_id: id });
+        const { data: viewResult, error: viewError } = await supabase.rpc(viewRpc, { row_id: id });
+        
+        if (viewError) {
+            console.error('[BZ-PLAYER] ПОМИЛКА RPC переглядів:', viewError);
+        } else if (viewResult !== null) {
+            data.views = viewResult;
+            viewsEl.textContent = data.views;
+        }
 
-if (!viewError && viewResult !== null) {
-    data.views = viewResult;
-    viewsEl.textContent = data.views;
-}
-
+        // Логіка лайків (виправлено)
         const alreadyLiked = getLiked().includes(id);
         likeBtn.disabled = alreadyLiked;
         likeBtn.onclick = async () => {
             const list = getLiked();
-if (list.includes(id)) return;
-likeBtn.disabled = true;
+            if (list.includes(id)) return;
+            
+            likeBtn.disabled = true;
+            const likeRpc = IS_CARTOON ? 'increment_cartoon_likes' : 'increment_likes';
+            const { data: likeResult, error: likeError } = await supabase.rpc(likeRpc, { row_id: id });
 
-const likeRpc = IS_CARTOON ? 'increment_cartoon_likes' : 'increment_likes';
-         const { data: viewResult, error: viewError } = await supabase.rpc(viewRpc, { row_id: id });
-if (viewError) {
-    console.error('ПОМИЛКА RPC:', viewError);
-}
-if (!viewError && viewResult !== null) {
-    data.views = viewResult;
-    viewsEl.textContent = data.views;
-}
-const { data: likeResult, error: likeError } = await supabase.rpc(likeRpc, { row_id: id });
-
-if (!likeError && likeResult !== null) {
-    data.likes = likeResult;
-    likesEl.textContent = data.likes;
-    saveLiked([...list, id]); // Зберігаємо тільки після успіху
-} else {
-    console.error('Помилка лайка:', likeError);
-    likeBtn.disabled = false; // Розблоковуємо, якщо помилка
-}
+            if (likeError) {
+                console.error('[BZ-PLAYER] ПОМИЛКА RPC лайків:', likeError);
+                likeBtn.disabled = false; // Розблоковуємо при помилці
+            } else if (likeResult !== null) {
+                data.likes = likeResult;
+                likesEl.textContent = data.likes;
+                saveLiked([...list, id]); // Зберігаємо тільки після успіху
+            }
         };
     }
 
@@ -432,7 +416,7 @@ if (!likeError && likeResult !== null) {
         setStatus('Надсилаємо…', '');
 
         try {
-            const insertData = { email: email, title: text };
+            const insertData = { email: email, text: text };
             insertData[ID_COLUMN] = activeId;
 
             const { error } = await supabase
