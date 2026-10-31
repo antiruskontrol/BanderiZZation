@@ -322,6 +322,14 @@ function start() {
         loadComments(id);
 
         const viewRpc = IS_CARTOON ? 'increment_cartoon_views' : 'increment_views';
+     const { data: viewResult, error: viewError } = await supabase.rpc(viewRpc, { row_id: id });
+if (viewError) {
+    console.error('ПОМИЛКА RPC:', viewError);
+}
+if (!viewError && viewResult !== null) {
+    data.views = viewResult;
+    viewsEl.textContent = data.views;
+}
 const { data: viewResult, error: viewError } = await supabase.rpc(viewRpc, { row_id: id });
 
 if (!viewError && viewResult !== null) {
@@ -337,6 +345,14 @@ if (list.includes(id)) return;
 likeBtn.disabled = true;
 
 const likeRpc = IS_CARTOON ? 'increment_cartoon_likes' : 'increment_likes';
+         const { data: viewResult, error: viewError } = await supabase.rpc(viewRpc, { row_id: id });
+if (viewError) {
+    console.error('ПОМИЛКА RPC:', viewError);
+}
+if (!viewError && viewResult !== null) {
+    data.views = viewResult;
+    viewsEl.textContent = data.views;
+}
 const { data: likeResult, error: likeError } = await supabase.rpc(likeRpc, { row_id: id });
 
 if (!likeError && likeResult !== null) {
