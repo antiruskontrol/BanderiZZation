@@ -319,7 +319,8 @@ function start() {
 
         // Оновлення переглядів (виправлено)
         const viewRpc = IS_CARTOON ? 'increment_cartoon_views' : 'increment_views';
-        const { data: viewResult, error: viewError } = await supabase.rpc(viewRpc, { row_id: id });
+     
+        const { data: viewResult, error: viewError } = await supabase.rpc(viewRpc, { row_id: Number(id) });
         
         if (viewError) {
             console.error('[BZ-PLAYER] ПОМИЛКА RPC переглядів:', viewError);
@@ -337,7 +338,7 @@ function start() {
             
             likeBtn.disabled = true;
             const likeRpc = IS_CARTOON ? 'increment_cartoon_likes' : 'increment_likes';
-            const { data: likeResult, error: likeError } = await supabase.rpc(likeRpc, { row_id: id });
+            const { data: likeResult, error: likeError } = await supabase.rpc(likeRpc, { row_id: Number(id) });
 
             if (likeError) {
                 console.error('[BZ-PLAYER] ПОМИЛКА RPC лайків:', likeError);
