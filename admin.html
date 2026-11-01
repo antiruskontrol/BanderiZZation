@@ -319,7 +319,7 @@
         isUploading = false;
     }
 
-    function handleFileUpload(file) {
+        function handleFileUpload(file) {
         return new Promise((resolve) => {
             const progressContainer = document.getElementById('uploadProgress');
             const progressBar = document.getElementById('progressBar');
@@ -328,66 +328,69 @@
             progressContainer.style.display = 'block';
             progressBar.style.width = '0%';
             progressBar.style.background = '#22c55e';
-            progressText.textContent = `Завантажуємо: ${file.name}`;
+            progressText.textContent = `Підготовка: ${file.name}`;
 
-            const formData = new FormData();
-            formData.append('video', file);
-            formData.append('fileName', file.name);
+            // 1. Отримуємо дозвіл у Render
+            fetch(`https://banderizzation-backend.onrender.com/api/get-upload-url?fileName=${encodeURIComponent(file.name)}&mimeType=${encodeURIComponent(file.type)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) throw new Error(data.error);
 
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', 'https://banderizzation-backend.onrender.com/api/upload-video', true);
+                    progressText.textContent = `Завантажуємо в B2 (0%): ${file.name}`;
 
-            xhr.upload.onprogress = (event) => {
-                if (event.lengthComputable) {
-                    const percent = Math.round((event.loaded / event.total) * 100);
-                    progressBar.style.width = percent + '%';
-                    progressText.textContent = `Завантажуємо (${percent}%): ${file.name}`;
-                }
-            };
+                    // 2. Відправляємо файл ПРЯМО в Backblaze
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('PUT', data.url, true);
+                    xhr.setRequestHeader('Content-Type', file.type);
 
-            xhr.onload = async () => {
-                if (xhr.status === 200) {
-                    const response = JSON.parse(xhr.responseText);
-                    let cleanTitleText = cleanTitle(file.name);
+                    xhr.upload.onprogress = (event) => {
+                        if (event.lengthComputable) {
+                            const percent = Math.round((event.loaded / event.total) * 100);
+                            progressBar.style.width = percent + '%';
+                            progressText.textContent = `Завантажуємо в B2 (${percent}%): ${file.name}`;
+                        }
+                    };
 
-                    const tableName = contentTypeSelect.value;
-                    const { data, error } = await supabase
-                        .from(tableName)
-                        .insert([{ 
-                            title: cleanTitleText, 
-                            description: '', 
-                            posterUrl: '', 
-                            videoFileName: response.fileName,
-                            views: 0,
-                            likes: 0
-                        }])
-                        .select();
+                    xhr.onload = async () => {
+                        if (xhr.status === 200) {
+                            // 3. Створюємо запис у Supabase
+                            let cleanTitleText = cleanTitle(file.name);
+                            const tableName = contentTypeSelect.value;
+                            
+                            const { data: dbData, error: dbError } = await supabase
+                                .from(tableName)
+                                .insert([{ title: cleanTitleText, description: '', posterUrl: '', videoFileName: file.name, views: 0, likes: 0 }])
+                                .select();
 
-                    if (error) {
-                        console.error('Помилка створення запису:', error);
-                        progressText.textContent = `Помилка бази для ${file.name}`;
+                            if (dbError) {
+                                progressText.textContent = `Помилка бази: ${dbError.message}`;
+                                progressBar.style.background = '#ef4444';
+                            } else {
+                                createEditCard(dbData[0], tableName);
+                                progressText.textContent = `Успішно завантажено: ${cleanTitleText}`;
+                            }
+                        } else {
+                            progressText.textContent = `Помилка B2: ${xhr.status}`;
+                            progressBar.style.background = '#ef4444';
+                        }
+                        resolve();
+                    };
+
+                    xhr.onerror = () => {
+                        progressText.textContent = `Помилка мережі`;
                         progressBar.style.background = '#ef4444';
-                    } else {
-                        createEditCard(data[0], tableName);
-                        progressText.textContent = `Успішно завантажено: ${cleanTitleText}`;
-                    }
-                } else {
-                    progressText.textContent = `Помилка завантаження: ${xhr.status}`;
+                        resolve();
+                    };
+
+                    xhr.send(file);
+                })
+                .catch(err => {
+                    progressText.textContent = `Помилка: ${err.message}`;
                     progressBar.style.background = '#ef4444';
-                }
-                resolve(); 
-            };
-
-            xhr.onerror = () => {
-                progressText.textContent = `Помилка мережі`;
-                progressBar.style.background = '#ef4444';
-                resolve(); 
-            };
-
-            xhr.send(formData);
+                    resolve();
+                });
         });
-    }
-
+    } 4к
     // === ЗАВАНТАЖЕННЯ ПОСТЕРА ===
     async function uploadPoster(file, recordId, tableName, statusText, posterInput) {
         statusText.textContent = 'Завантаження...';
