@@ -6,15 +6,19 @@
     <title>Адмін-панель — BanderiZZation</title>
     <!--
     ===================================================================
-    Версія:       2.7.0 (BanderiZZation! Hub — admin.html)
-    Дата, час:    2026-11-01
+    Версія:       2.8.0 (BanderiZZation! Hub — admin.html)
+    Дата, час:    2026-11-02
     Розробник:    Афтіпа Марко Оцтович | antiruskontrol@ukr.net
     -------------------------------------------------------------------
     Еволюція змін:
-     Зміни 2.7.0 відносно 2.6.0:
-      1. Пряме завантаження відео в B2 (через Presigned URL).
-      2. Виправлено синтаксичні помилки.
-      3. Додано перевірку наявності елементів.
+     Зміни 2.8.0 відносно 2.7.0:
+      1. У вікні "Керування файлами" тепер відображаються нормальні
+         українські назви (з бази), а не технічні імена з B2.
+      2. Додано кнопку "Редагувати" в кожному рядку списку керування.
+         Вона дозволяє змінювати назву, опис та постер для вже
+         існуючих фільмів/мультфільмів.
+      3. Додано модальне вікно для редагування.
+      4. Постери завантажуються напряму в Supabase Storage.
     ===================================================================
     -->
     <style>
@@ -88,6 +92,7 @@
         .progress-bg { background: #1e293b; border-radius: 8px; overflow: hidden; height: 20px; }
         #progressBar { background: #22c55e; width: 0%; height: 100%; transition: width 0.3s; }
         #progressText { text-align: center; font-size: 0.9rem; margin-top: 8px; color: #cbd5e1; }
+        
         .uploaded-card {
             background: rgba(30, 41, 59, 0.8); border: 1px solid #475569;
             border-radius: 12px; padding: 15px; margin-top: 15px;
@@ -105,6 +110,7 @@
         .poster-drop-zone:hover { background: rgba(59, 130, 246, 0.1); border-color: #3b82f6; }
         .poster-status-text { color: #94a3b8; font-size: 0.9rem; }
 
+        /* Модальне вікно керування */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.7); z-index: 1000; justify-content: center; align-items: center;
@@ -123,12 +129,17 @@
         .file-list { list-style: none; padding: 0; margin: 0; }
         .file-item { display: flex; align-items: center; padding: 8px; border-bottom: 1px solid #334155; }
         .file-item input[type="checkbox"] { margin-right: 15px; width: 18px; height: 18px; }
-        .file-info strong { display: block; color: #fff; }
-        .file-info span { font-size: 0.8rem; color: #94a3b8; }
+        .file-info { flex: 1; }
+        .file-info strong { display: block; color: #fff; font-size: 0.95rem; }
+        .file-info span { font-size: 0.75rem; color: #64748b; }
+        .btn-edit { background: #f59e0b; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; margin-left: 10px; }
         .modal-footer { padding: 15px; border-top: 1px solid #3b82f6; display: flex; justify-content: flex-end; gap: 10px; }
         .modal-footer button { padding: 8px 20px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; }
         .btn-cancel { background: #475569; color: white; }
         .btn-delete-selected { background: #ef4444; color: white; }
+
+        /* Модальне вікно редагування */
+        #editModal { z-index: 1100; }
     </style>
 </head>
 <body>
@@ -178,7 +189,7 @@
     <div id="uploadedCardsContainer"></div>
 </div>
 
-<!-- Модальне вікно керування -->
+<!-- Модальне вікно керування файлами -->
 <div class="modal-overlay" id="manageModal">
     <div class="modal-window" id="modalWindow">
         <div class="modal-header" id="modalHeader">
@@ -200,7 +211,28 @@
     </div>
 </div>
 
-<script type="module">
+<!-- Модальне вікно редагування -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal-window" style="height: auto; max-height: 80vh;">
+        <div class="modal-header">
+            <div class="modal-title">Редагування запису</div>
+            <div class="window-controls">
+                <button id="closeEditBtn" title="Закрити">✕</button>
+            </div>
+        </div>
+        <div class="modal-body">
+            <label>Назва</label>
+            <input type="text" id="editTitleInput">
+            <label>Опис</label>
+            <textarea id="editDescInput" rows="3"></textarea>
+            <label>Постер (URL)</label>
+            <input type="text" id="editPosterInput">
+            <div style="margin-top: 15px; text-align: center;">
+                <button class="btn-save" id="saveEditBtn" style="padding: 10px 20px; font-size: 1rem;">💾 Зберегти зміни</button>
+                <p id="editStatus" style="font-size: 0.9rem; margin-top: 10px;"></p>
+            </div>
+        </div>
+        <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
     const SUPABASE_URL = 'https://bmwzzvrmkupwimhvzzqe.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_AlkDR5OTAyQjce5VYnLFOg_RlENaNLu';
@@ -229,6 +261,17 @@
     const dropZone = document.getElementById('dropZone');
     const videoFileInput = document.getElementById('videoFileInput');
     const uploadedCardsContainer = document.getElementById('uploadedCardsContainer');
+
+    // Елементи вікна редагування
+    const editModal = document.getElementById('editModal');
+    const closeEditBtn = document.getElementById('closeEditBtn');
+    const editTitleInput = document.getElementById('editTitleInput');
+    const editDescInput = document.getElementById('editDescInput');
+    const editPosterInput = document.getElementById('editPosterInput');
+    const saveEditBtn = document.getElementById('saveEditBtn');
+    const editStatus = document.getElementById('editStatus');
+    let editingRecordId = null;
+    let editingTableName = null;
 
     // === АВТОРИЗАЦІЯ ===
     async function checkSession() {
@@ -318,7 +361,6 @@
         isUploading = false;
     }
 
-    // === ЗАВАНТАЖЕННЯ ВІДЕО ===
     function handleFileUpload(file) {
         return new Promise((resolve) => {
             const progressContainer = document.getElementById('uploadProgress');
@@ -389,34 +431,24 @@
         });
     }
 
-    // === ЗАВАНТАЖЕННЯ ПОСТЕРА ===
-       async function uploadPoster(file, recordId, tableName, statusText, posterInput) {
+    // === ЗАВАНТАЖЕННЯ ПОСТЕРА В SUPABASE ===
+    async function uploadPoster(file, recordId, tableName, statusText, posterInput) {
         statusText.textContent = 'Завантаження...';
         statusText.style.color = '#38ff3b';
 
-        // Генеруємо унікальне ім'я файлу, щоб уникнути конфліктів
         const fileExt = file.name.split('.').pop();
         const fileName = `${recordId}_${Date.now()}.${fileExt}`;
 
         try {
-            // Завантажуємо напряму в Supabase Storage
             const { data, error } = await supabase.storage
                 .from('posters')
-                .upload(fileName, file, {
-                    cacheControl: '3600',
-                    upsert: false
-                });
+                .upload(fileName, file, { cacheControl: '3600', upsert: false });
 
             if (error) throw error;
 
-            // Отримуємо публічне посилання
-            const { data: urlData } = supabase.storage
-                .from('posters')
-                .getPublicUrl(fileName);
-
+            const { data: urlData } = supabase.storage.from('posters').getPublicUrl(fileName);
             const publicUrl = urlData.publicUrl;
 
-            // Оновлюємо поле та базу
             posterInput.value = publicUrl;
             statusText.textContent = '✅ Постер завантажено!';
             statusText.style.color = '#22c55e';
@@ -430,7 +462,7 @@
         }
     }
 
-    // === КАРТКА РЕДАГУВАННЯ ===
+    // === КАРТКА РЕДАГУВАННЯ (ПІСЛЯ ЗАВАНТАЖЕННЯ) ===
     function createEditCard(record, tableName) {
         const card = document.createElement('div');
         card.className = 'uploaded-card';
@@ -551,7 +583,7 @@
         maximizeBtn.textContent = isMaximized ? '❐' : '□';
     });
 
-    // === СПИСОК ФАЙЛІВ ===
+    // === СПИСОК ФАЙЛІВ (З НОРМАЛЬНИМИ НАЗВАМИ ТА КНОПКОЮ РЕДАГУВАННЯ) ===
     async function loadFilesForManagement() {
         const tableName = contentTypeSelect.value;
         modalStatus.textContent = 'Завантаження...';
@@ -559,7 +591,7 @@
 
         const { data, error } = await supabase
             .from(tableName)
-            .select('id, title, videoFileName')
+            .select('*')
             .order('title', { ascending: true });
 
         if (error) {
@@ -577,18 +609,87 @@
         data.forEach(item => {
             const li = document.createElement('li');
             li.className = 'file-item';
-            const safeTitle = (item.title || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            const safeFile = (item.videoFileName || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            
+            const safeTitle = (item.title || 'Без назви').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            
             li.innerHTML = `
-                <input type="checkbox" value="${item.id}" data-filename="${safeFile}">
+                <input type="checkbox" value="${item.id}" data-filename="${item.videoFileName || ''}">
                 <div class="file-info">
                     <strong>${safeTitle}</strong>
-                    <span>${safeFile}</span>
+                    <span>${item.videoFileName || ''}</span>
                 </div>
+                <button class="btn-edit" data-id="${item.id}" data-table="${tableName}">✏️</button>
             `;
             fileList.appendChild(li);
         });
+
+        fileList.querySelectorAll('.btn-edit').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const id = btn.dataset.id;
+                const table = btn.dataset.table;
+                await openEditWindow(id, table);
+            });
+        });
     }
+
+    // === РЕДАГУВАННЯ ІСНУЮЧОГО ЗАПИСУ ===
+    async function openEditWindow(id, tableName) {
+        editingRecordId = id;
+        editingTableName = tableName;
+
+        const { data, error } = await supabase
+            .from(tableName)
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error || !data) {
+            alert('Не вдалося завантажити дані запису.');
+            return;
+        }
+
+        editTitleInput.value = data.title || '';
+        editDescInput.value = data.description || '';
+        editPosterInput.value = data.posterUrl || '';
+        editStatus.textContent = '';
+
+        editModal.style.display = 'flex';
+    }
+
+    closeEditBtn.addEventListener('click', () => {
+        editModal.style.display = 'none';
+    });
+
+    saveEditBtn.addEventListener('click', async () => {
+        if (!editingRecordId || !editingTableName) return;
+
+        saveEditBtn.disabled = true;
+        editStatus.textContent = 'Збереження...';
+        editStatus.style.color = '#94a3b8';
+
+        const { error } = await supabase
+            .from(editingTableName)
+            .update({
+                title: editTitleInput.value,
+                description: editDescInput.value,
+                posterUrl: editPosterInput.value
+            })
+            .eq('id', editingRecordId);
+
+        if (error) {
+            editStatus.textContent = 'Помилка: ' + error.message;
+            editStatus.style.color = '#ef4444';
+        } else {
+            editStatus.textContent = '✅ Збережено!';
+            editStatus.style.color = '#22c55e';
+            setTimeout(() => {
+                editModal.style.display = 'none';
+                loadFilesForManagement();
+            }, 1000);
+        }
+        saveEditBtn.disabled = false;
+    });
 
     // === ВИДАЛЕННЯ ===
     deleteSelectedBtn.addEventListener('click', async () => {
@@ -639,3 +740,5 @@
 
 </body>
 </html>
+    </div>
+</div>
