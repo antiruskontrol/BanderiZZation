@@ -622,7 +622,7 @@
             
             const safeTitle = (item.title || 'Без назви').replace(/</g, '&lt;').replace(/>/g, '&gt;');
             
-            li.innerHTML = `
+                        li.innerHTML = `
                 <input type="checkbox" value="${item.id}" data-filename="${item.videoFileName || ''}">
                 <div class="file-info">
                     <strong>${safeTitle}</strong>
