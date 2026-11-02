@@ -626,7 +626,7 @@
                 <input type="checkbox" value="${item.id}" data-filename="${item.videoFileName || ''}">
                 <div class="file-info">
                     <strong>${safeTitle}</strong>
-                    <span>${item.videoFileName || ''}</span>
+                    <span style="display: none;">${item.videoFileName || ''}</span>
                 </div>
                 <button class="btn-edit" data-id="${item.id}" data-table="${tableName}">✏️</button>
             `;
