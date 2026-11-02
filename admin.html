@@ -225,14 +225,18 @@
             <input type="text" id="editTitleInput">
             <label>Опис</label>
             <textarea id="editDescInput" rows="3"></textarea>
-            <label>Постер (URL)</label>
-            <input type="text" id="editPosterInput">
+                       <label>Постер</label>
+            <div class="poster-drop-zone" id="editPosterDropZone">
+                <span class="poster-status-text" id="editPosterStatus">Перетягніть картинку сюди або клікніть</span>
+                <input type="file" id="editPosterFileInput" accept="image/*" style="display: none;">
+            </div>
+            <input type="text" id="editPosterInput" placeholder="URL постера">
             <div style="margin-top: 15px; text-align: center;">
                 <button class="btn-save" id="saveEditBtn" style="padding: 10px 20px; font-size: 1rem;">💾 Зберегти зміни</button>
                 <p id="editStatus" style="font-size: 0.9rem; margin-top: 10px;"></p>
             </div>
         </div>
-        <script type="module">
+       <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
     const SUPABASE_URL = 'https://bmwzzvrmkupwimhvzzqe.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_AlkDR5OTAyQjce5VYnLFOg_RlENaNLu';
@@ -270,6 +274,12 @@
     const editPosterInput = document.getElementById('editPosterInput');
     const saveEditBtn = document.getElementById('saveEditBtn');
     const editStatus = document.getElementById('editStatus');
+    
+    // Нові елементи для Drop Zone у вікні редагування
+    const editPosterDropZone = document.getElementById('editPosterDropZone');
+    const editPosterFileInput = document.getElementById('editPosterFileInput');
+    const editPosterStatus = document.getElementById('editPosterStatus');
+
     let editingRecordId = null;
     let editingTableName = null;
 
@@ -653,12 +663,39 @@
         editDescInput.value = data.description || '';
         editPosterInput.value = data.posterUrl || '';
         editStatus.textContent = '';
+        editPosterStatus.textContent = 'Перетягніть картинку сюди або клікніть';
+        editPosterStatus.style.color = '#94a3b8';
 
         editModal.style.display = 'flex';
     }
 
     closeEditBtn.addEventListener('click', () => {
         editModal.style.display = 'none';
+    });
+
+    // Обробники для Drop Zone у вікні редагування
+    editPosterDropZone.addEventListener('click', () => editPosterFileInput.click());
+    editPosterDropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        editPosterDropZone.style.background = 'rgba(59, 130, 246, 0.1)';
+    });
+    editPosterDropZone.addEventListener('dragleave', () => {
+        editPosterDropZone.style.background = 'transparent';
+    });
+    editPosterDropZone.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        editPosterDropZone.style.background = 'transparent';
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) {
+            await uploadPoster(file, editingRecordId, editingTableName, editPosterStatus, editPosterInput);
+        }
+    });
+    editPosterFileInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            await uploadPoster(file, editingRecordId, editingTableName, editPosterStatus, editPosterInput);
+        }
+        editPosterFileInput.value = '';
     });
 
     saveEditBtn.addEventListener('click', async () => {
@@ -740,5 +777,3 @@
 
 </body>
 </html>
-    </div>
-</div>
