@@ -390,41 +390,41 @@
     }
 
     // === ЗАВАНТАЖЕННЯ ПОСТЕРА ===
-    async function uploadPoster(file, recordId, tableName, statusText, posterInput) {
+       async function uploadPoster(file, recordId, tableName, statusText, posterInput) {
         statusText.textContent = 'Завантаження...';
         statusText.style.color = '#38ff3b';
 
+        // Генеруємо унікальне ім'я файлу, щоб уникнути конфліктів
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${recordId}_${Date.now()}.${fileExt}`;
+
         try {
-            const response = await fetch(`https://banderizzation-backend.onrender.com/api/get-poster-upload-url?fileName=${encodeURIComponent(file.name)}&mimeType=${encodeURIComponent(file.type)}`);
-            const data = await response.json();
+            // Завантажуємо напряму в Supabase Storage
+            const { data, error } = await supabase.storage
+                .from('posters')
+                .upload(fileName, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
+
+            if (error) throw error;
+
+            // Отримуємо публічне посилання
+            const { data: urlData } = supabase.storage
+                .from('posters')
+                .getPublicUrl(fileName);
+
+            const publicUrl = urlData.publicUrl;
+
+            // Оновлюємо поле та базу
+            posterInput.value = publicUrl;
+            statusText.textContent = '✅ Постер завантажено!';
+            statusText.style.color = '#22c55e';
             
-            if (data.error) throw new Error(data.error);
+            await supabase.from(tableName).update({ posterUrl: publicUrl }).eq('id', recordId);
 
-            const xhr = new XMLHttpRequest();
-            xhr.open('PUT', data.uploadUrl, true);
-            xhr.setRequestHeader('Content-Type', file.type);
-
-            xhr.onload = async () => {
-                if (xhr.status === 200) {
-                    posterInput.value = data.viewUrl;
-                    statusText.textContent = '✅ Постер завантажено!';
-                    statusText.style.color = '#22c55e';
-                    
-                    await supabase.from(tableName).update({ posterUrl: data.viewUrl }).eq('id', recordId);
-                } else {
-                    statusText.textContent = '❌ Помилка B2';
-                    statusText.style.color = '#ef4444';
-                }
-            };
-
-            xhr.onerror = () => {
-                statusText.textContent = '❌ Помилка мережі';
-                statusText.style.color = '#ef4444';
-            };
-
-            xhr.send(file);
         } catch (error) {
-            console.error(error);
+            console.error('Помилка завантаження постера:', error);
             statusText.textContent = '❌ Помилка завантаження';
             statusText.style.color = '#ef4444';
         }
